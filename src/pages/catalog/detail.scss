@@ -1,0 +1,75 @@
+.page {
+  min-height: 100vh;
+  padding-bottom: 48px;
+  background: var(--color-surface);
+  box-sizing: border-box;
+}
+
+.detail-swiper {
+  width: 100%;
+  height: 480px;
+  background: var(--color-border);
+}
+
+.detail-swiper__image {
+  width: 100%;
+  height: 480px;
+}
+
+.detail-name {
+  display: block;
+  margin: 24px 24px 0;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.detail-meta {
+  display: block;
+  margin: 12px 24px 0;
+  font-size: 26px;
+  color: var(--color-text-muted);
+}
+
+.detail-price {
+  display: block;
+  margin: 16px 24px 0;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.detail-row {
+  display: block;
+  margin: 12px 24px 0;
+  font-size: 28px;
+  color: var(--color-text);
+}
+
+.detail-desc {
+  display: block;
+  margin: 16px 24px 0;
+  font-size: 28px;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.detail-fav {
+  margin: 32px 24px 0;
+  padding: 20px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.detail-fav__text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.detail-missing {
+  display: block;
+  padding: 48px 24px;
+  font-size: 28px;
+  color: var(--color-text-muted);
+}
