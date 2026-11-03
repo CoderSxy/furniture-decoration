@@ -24,6 +24,10 @@ import {
   LOGIN_PRIVACY_DENIED_TEXT,
   LOGIN_SUBTITLE,
   SYNC_FAILED_TEXT,
+  CLEAR_MY_DATA_TEXT,
+  LOGOUT_BUTTON_TEXT,
+  MINE_NOTE_TEXT,
+  MINE_PRIVACY_MODAL_TEXT,
 } from '../src/constants/labels.ts'
 
 test('room / style / category labels match the M1 enum table', () => {
@@ -141,4 +145,17 @@ test('login copy matches the openid design and refuses phone wording as a requir
   assert.equal(SYNC_FAILED_TEXT, '同步失败，将在网络恢复后重试')
   assert.equal(LOGIN_MISSING_BASE_TEXT, '未配置服务地址，无法登录')
   assert.match(LOGIN_SUBTITLE, /不获取手机号/)
+})
+
+test('mine privacy copy matches the openid design', () => {
+  assert.equal(
+    MINE_NOTE_TEXT,
+    '登录后，收藏、方案、预算、房型尺寸和 AI 选品快照会同步到自建 HTTPS 服务器。使用微信 openid 识别同一用户，不获取手机号。扫描参考照片仍只留在本机，不会上传。可退出登录或清除我的数据。',
+  )
+  assert.equal(
+    MINE_PRIVACY_MODAL_TEXT,
+    '相机用于房型测量，参考照片由你主动选择且不上云。登录后业务数据同步到自建服务器；用户标识为微信 openid，不收集手机号。可通过「退出登录」清除本机会话，或「清除我的数据」删除云端与本机业务记录。',
+  )
+  assert.equal(LOGOUT_BUTTON_TEXT, '退出登录')
+  assert.equal(CLEAR_MY_DATA_TEXT, '清除我的数据')
 })

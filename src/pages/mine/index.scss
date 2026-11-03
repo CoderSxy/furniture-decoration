@@ -43,3 +43,12 @@
   font-size: 28px;
   color: var(--color-danger);
 }
+
+.mine-reset--disabled {
+  opacity: 0.45;
+  border-color: var(--color-text-muted);
+}
+
+.mine-reset--disabled .mine-reset__text {
+  color: var(--color-text-muted);
+}
