@@ -9,3 +9,11 @@ export function planDetailUrl(planId: string): string {
 export function scanPageUrl(planId: string): string {
   return `/packageScan/pages/scan/index?planId=${encodeURIComponent(planId)}`
 }
+
+export function aiRecommendUrl(planId: string): string {
+  return `/packagePreview/pages/ai/recommend?planId=${encodeURIComponent(planId)}`
+}
+
+export function previewPageUrl(planId: string): string {
+  return `/packagePreview/pages/preview/index?planId=${encodeURIComponent(planId)}`
+}

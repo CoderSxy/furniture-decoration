@@ -87,6 +87,28 @@
   color: var(--color-text-muted);
 }
 
+.plan-m5-entry {
+  margin: 0 0 16px;
+  padding: 20px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.plan-m5-entry--ghost {
+  background: var(--color-card);
+  border: 1px solid var(--color-primary);
+}
+
+.plan-m5-entry__text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.plan-m5-entry--ghost .plan-m5-entry__text {
+  color: var(--color-primary);
+}
+
 .plan-section {
   display: block;
   margin: 8px 0 16px;
