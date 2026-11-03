@@ -17,6 +17,11 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "react"
+    ],
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -26,5 +31,6 @@
     }
   },
   "include": ["./src", "./types", "./config"],
+  "exclude": ["node_modules", "dist", "tests"],
   "compileOnSave": false
 }

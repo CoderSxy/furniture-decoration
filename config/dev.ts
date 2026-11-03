@@ -1,7 +1,12 @@
 import type { UserConfigExport } from "@tarojs/cli"
 
 export default {
-  
-  mini: {},
-  h5: {}
+  logger: {
+    quiet: false,
+    stats: true,
+  },
+  mini: {
+    debugReact: true,
+  },
+  h5: {},
 } satisfies UserConfigExport<'vite'>

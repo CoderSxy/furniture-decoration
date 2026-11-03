@@ -1,0 +1,14 @@
+page {
+  --color-primary: #c45c26;
+  --color-primary-pressed: #a34b1e;
+  --color-surface: #f7f3ee;
+  --color-card: #ffffff;
+  --color-text: #1f1b16;
+  --color-text-muted: #7a7168;
+  --color-border: #e6dfd6;
+  --color-danger: #c0392b;
+  --color-progress: #c45c26;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 28px;
+}

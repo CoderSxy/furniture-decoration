@@ -1,5 +1,5 @@
 {
-  "miniprogramRoot": "./dist",
+  "miniprogramRoot": "dist/",
   "projectname": "furniture-decoration",
   "description": "家具装修微信小程序",
   "appid": "touristappid",
