@@ -56,4 +56,9 @@ export default defineAppConfig({
       },
     ],
   },
+  permission: {
+    'scope.camera': {
+      desc: '访问你的摄像头',
+    },
+  },
 })
