@@ -1,8 +1,10 @@
+// src/pages/plans/index.tsx
 import { Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState } from 'react'
 import { PlanCard } from '../../components/plan-card'
 import { ROOM_CREATE_OPTIONS, ROOM_LABELS } from '../../constants/labels'
+import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { usePlanStore } from '../../stores/planStore'
 import type { RoomType } from '../../types/domain'
@@ -22,6 +24,7 @@ export default function PlansPage() {
   const createPlan = usePlanStore((state) => state.createPlan)
   const setActivePlanId = usePlanStore((state) => state.setActivePlanId)
   const products = useCatalogStore((state) => state.products)
+  const ensureForPlan = useBudgetStore((state) => state.ensureForPlan)
 
   const [formOpen, setFormOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -45,6 +48,7 @@ export default function PlansPage() {
       Taro.showToast({ title: CREATE_ERRORS[result.reason], icon: 'none' })
       return
     }
+    ensureForPlan(result.plan, products)
     resetForm()
   }
 
