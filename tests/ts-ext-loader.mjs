@@ -1,6 +1,7 @@
 export async function resolve(specifier, context, nextResolve) {
+  const isRelative = specifier.startsWith('./') || specifier.startsWith('../')
   const hasExplicitExt = /\.[a-zA-Z0-9]+$/.test(specifier)
-  if ((specifier.startsWith('.') || specifier.startsWith('/')) && !hasExplicitExt) {
+  if (isRelative && !hasExplicitExt) {
     try {
       return await nextResolve(`${specifier}.ts`, context)
     } catch {

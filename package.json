@@ -19,7 +19,7 @@
     "build:weapp": "taro build --type weapp",
     "dev:weapp": "npm run build:weapp -- --watch",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --import ./tests/preload-taro-globals.cjs --test tests/"
+    "test": "node --experimental-strip-types --import ./tests/preload-taro-globals.cjs --test tests/*.test.ts"
   },
   "browserslist": [
     "defaults and fully supports es6-module",
