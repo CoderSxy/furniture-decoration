@@ -1,4 +1,4 @@
-import type { PriceRange, ProductCategory, RoomType, StyleTag } from '../types/domain'
+import type { PlanStage, PriceRange, ProductCategory, RoomType, StyleTag } from '../types/domain'
 
 export const ROOM_LABELS: Record<RoomType, string> = {
   living: '客厅',
@@ -34,6 +34,15 @@ export const PRICE_RANGE_LABELS: Record<PriceRange, string> = {
   gte8000: '8千以上',
 }
 
+export const STAGE_LABELS: Record<PlanStage, string> = {
+  measure: '量房',
+  design: '设计',
+  construct: '施工',
+  accept: '验收',
+}
+
+export const STAGE_ORDER = ['measure', 'design', 'construct', 'accept'] as const satisfies readonly PlanStage[]
+
 export const CATEGORY_FILTER_OPTIONS = [
   'all',
   'sofa',
@@ -54,6 +63,15 @@ export const ROOM_FILTER_OPTIONS = [
   'study',
   'balcony',
 ] as const satisfies readonly (RoomType | 'all')[]
+
+export const ROOM_CREATE_OPTIONS = [
+  'living',
+  'bedroom',
+  'kitchen',
+  'bathroom',
+  'study',
+  'balcony',
+] as const satisfies readonly RoomType[]
 
 export const STYLE_FILTER_OPTIONS = [
   'all',

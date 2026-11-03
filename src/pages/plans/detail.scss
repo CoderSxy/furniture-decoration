@@ -1,0 +1,125 @@
+.page {
+  min-height: 100vh;
+  padding: 24px 24px 48px;
+  background: var(--color-surface);
+  box-sizing: border-box;
+}
+
+.plan-title {
+  display: block;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.plan-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 26px;
+  color: var(--color-text-muted);
+}
+
+.plan-timeline {
+  display: flex;
+  flex-direction: row;
+  margin: 24px 0;
+}
+
+.plan-timeline__item {
+  flex: 1;
+  padding: 12px 0;
+  margin-right: 8px;
+  border-radius: 8px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.plan-timeline__item:last-child {
+  margin-right: 0;
+}
+
+.plan-timeline__item--done {
+  border-color: var(--color-primary);
+}
+
+.plan-timeline__item--current {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.plan-timeline__text {
+  font-size: 24px;
+  color: var(--color-text);
+}
+
+.plan-timeline__item--current .plan-timeline__text {
+  color: #ffffff;
+}
+
+.plan-section {
+  display: block;
+  margin: 8px 0 16px;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.plan-empty-products {
+  padding: 24px 0 32px;
+}
+
+.plan-empty-products__text {
+  font-size: 28px;
+  color: var(--color-primary);
+}
+
+.plan-product__remove {
+  margin: -8px 0 24px;
+  padding: 12px 0;
+  text-align: right;
+}
+
+.plan-product__remove-text {
+  font-size: 26px;
+  color: var(--color-danger);
+}
+
+.plan-advance {
+  margin-top: 16px;
+  padding: 20px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.plan-advance--disabled {
+  opacity: 0.45;
+}
+
+.plan-advance__text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.plan-advance__hint {
+  display: block;
+  margin-top: 12px;
+  font-size: 24px;
+  color: var(--color-danger);
+}
+
+.plan-accept {
+  display: block;
+  margin-top: 24px;
+  font-size: 28px;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.plan-missing {
+  display: block;
+  padding: 48px 0;
+  font-size: 28px;
+  color: var(--color-text-muted);
+}

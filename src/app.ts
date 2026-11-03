@@ -1,6 +1,7 @@
 import { PropsWithChildren } from 'react'
 import Taro from '@tarojs/taro'
 import { useFavoriteStore } from './stores/favoriteStore'
+import { usePlanStore } from './stores/planStore'
 import { configureStorage } from './utils/storage'
 
 import './app.scss'
@@ -21,6 +22,7 @@ configureStorage({
 })
 
 useFavoriteStore.getState().hydrate()
+usePlanStore.getState().hydrate()
 
 function App({ children }: PropsWithChildren<any>) {
   return children
