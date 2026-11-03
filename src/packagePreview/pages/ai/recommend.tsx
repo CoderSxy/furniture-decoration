@@ -19,6 +19,8 @@ export default function AiRecommendPage() {
   const products = useCatalogStore((state) => state.products)
   const addProductToPlan = usePlanStore((state) => state.addProductToPlan)
   const ensureForPlan = useBudgetStore((state) => state.ensureForPlan)
+  const [attempt, setAttempt] = useState(0)
+  const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<AiRecommendItem[]>([])
 
@@ -30,15 +32,21 @@ export default function AiRecommendPage() {
     }
     let cancelled = false
     setLoading(true)
+    setError(false)
     fetchAiRecommendations(buildAiRecommendRequest(plan, products)).then((next) => {
       if (cancelled) return
       setItems(next)
-      setLoading(false)
+    }).catch(() => {
+      if (cancelled) return
+      setItems([])
+      setError(true)
+    }).finally(() => {
+      if (!cancelled) setLoading(false)
     })
     return () => {
       cancelled = true
     }
-  }, [planId])
+  }, [planId, attempt])
 
   if (!plan) {
     return (
@@ -65,7 +73,8 @@ export default function AiRecommendPage() {
     <View className='page'>
       <Text className='ai-title'>AI 选品</Text>
       {loading ? <Text className='ai-status'>正在匹配家具…</Text> : null}
-      {!loading && items.length === 0 ? (
+      {error ? <View onClick={() => setAttempt((value) => value + 1)}><Text>推荐失败，点击重试</Text></View> : null}
+      {!loading && !error && items.length === 0 ? (
         <Text className='ai-empty'>{EMPTY_AI_RECOMMEND_TEXT}</Text>
       ) : null}
       {!loading

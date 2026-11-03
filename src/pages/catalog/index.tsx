@@ -1,5 +1,6 @@
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useShallow } from 'zustand/react/shallow'
 import { FilterBar } from '../../components/filter-bar'
 import { ProductCard } from '../../components/product-card'
 import { selectFilteredProducts, useCatalogStore } from '../../stores/catalogStore'
@@ -12,7 +13,7 @@ export default function CatalogPage() {
   const filters = useCatalogStore((state) => state.filters)
   const setFilters = useCatalogStore((state) => state.setFilters)
   const clearFilters = useCatalogStore((state) => state.clearFilters)
-  const products = useCatalogStore(selectFilteredProducts)
+  const products = useCatalogStore(useShallow(selectFilteredProducts))
   const filterPanelOpen = useUiStore((state) => state.filterPanelOpen)
   const setFilterPanelOpen = useUiStore((state) => state.setFilterPanelOpen)
 

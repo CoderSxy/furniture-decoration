@@ -4,3 +4,13 @@ const taro = {
 }
 
 export default taro
+
+export const useRouter = () => ({ params: { planId: taro.testPlanId ?? '' } })
+taro.nextTick = (cb) => cb()
+taro.onWindowResize = () => {}
+taro.offWindowResize = () => {}
+taro.createSelectorQuery = () => {
+  const query = { select: () => query, boundingClientRect: () => query, exec: (cb) => cb([{ width: 320, height: 240, left: 0, top: 0 }]) }
+  return query
+}
+taro.getSystemInfoSync = () => ({ SDKVersion: '3.6.5' })

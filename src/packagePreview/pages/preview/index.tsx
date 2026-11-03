@@ -1,6 +1,6 @@
 import { Text, View } from '@tarojs/components'
 import { useRouter } from '@tarojs/taro'
-import { createElement, useMemo, useState } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState } from 'react'
 import { PreviewFloor2d } from '../../components/preview-2d'
 import { XR_FRAME_UNSUPPORTED_TEXT } from '../../../constants/labels'
 import { useCatalogStore } from '../../../stores/catalogStore'
@@ -26,6 +26,21 @@ export default function PreviewPage() {
   const products = useCatalogStore((state) => state.products)
   const [canUse3d, setCanUse3d] = useState(() => readXrFrameSupport())
   const [mode, setMode] = useState<PreviewMode>('2d')
+  const readyRef = useRef(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const fallback = () => {
+    clearTimeout(timeoutRef.current)
+    setCanUse3d(false)
+    setMode('2d')
+  }
+  useEffect(() => {
+    if (mode !== '3d' || !canUse3d) return
+    timeoutRef.current = setTimeout(() => {
+      if (!readyRef.current) fallback()
+    }, 8000)
+    return () => clearTimeout(timeoutRef.current)
+  }, [mode, canUse3d])
+
 
   const room = resolvePreviewRoom(scan)
   const planProducts: Product[] = useMemo(() => {
@@ -58,7 +73,7 @@ export default function PreviewPage() {
           </View>
           <View
             className={mode === '3d' ? 'preview-switch__btn preview-switch__btn--on' : 'preview-switch__btn'}
-            onClick={() => setMode('3d')}
+            onClick={() => { readyRef.current = false; setMode('3d') }}
           >
             <Text className='preview-switch__text'>3D</Text>
           </View>
@@ -72,10 +87,11 @@ export default function PreviewPage() {
             className: 'preview-xr',
             floorScale,
             cubesJson,
-            onError: () => {
-              setCanUse3d(false)
-              setMode('2d')
+            onReady: () => {
+              readyRef.current = true
+              clearTimeout(timeoutRef.current)
             },
+            onError: fallback,
           })
         : <PreviewFloor2d room={room} products={planProducts} />}
     </View>

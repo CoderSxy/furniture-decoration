@@ -70,3 +70,9 @@ test('fetchAiRecommendations returns [] when remote payload is not an array', as
   })
   assert.deepEqual(items, [])
 })
+
+test('remote recommendations reject HTTP errors and discard malformed items', async () => {
+  const deps = { getUrl: () => 'https://example.invalid' }
+  await assert.rejects(fetchAiRecommendations(req, { ...deps, request: async () => ({ statusCode: 503, data: [] }) }))
+  assert.deepEqual(await fetchAiRecommendations(req, { ...deps, request: async () => ({ statusCode: 200, data: [null, {}, { productId: 'a', score: Infinity, reason: 'x' }, mockItems[0]] }) }), mockItems)
+})

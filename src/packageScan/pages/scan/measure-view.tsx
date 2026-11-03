@@ -42,7 +42,12 @@ export function MeasureView({ planId, session, onSaved, onFallback }: MeasureVie
         if (!rect) return
         const tap = normalizePageTap(pageX, pageY, rect)
         if (!tap) return
-        const hits = session.hitTest(tap.x, tap.y)
+        let hits: ReturnType<VkSessionHandle['hitTest']>
+        try { hits = session.hitTest(tap.x, tap.y) } catch {
+          Taro.showToast({ title: '测量失败，已改用手填', icon: 'none' })
+          onFallback()
+          return
+        }
         const transform = hits[0]?.transform
         if (!transform) {
           Taro.showToast({ title: '未识别到地面，请对准地面再点', icon: 'none' })

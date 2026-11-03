@@ -1,4 +1,4 @@
-<xr-scene id="xr-scene" bind:error="onError">
+<xr-scene id="xr-scene" bind:error="onError" bind:ready="onReady">
   <xr-node>
     <xr-light type="ambient" color="1 1 1" intensity="1" />
     <xr-light type="directional" rotation="40 50 0" color="1 1 1" intensity="2" />
@@ -23,7 +23,7 @@
       position="0 2.4 5"
       target="0 0 0"
       clear-color="0.97 0.95 0.93 1"
-      camera-orbit
+      camera-orbit-control
     />
   </xr-node>
 </xr-scene>

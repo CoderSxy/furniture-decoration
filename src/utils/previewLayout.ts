@@ -146,3 +146,11 @@ export function furnitureToXrCubes(
 export function roomFloorScale(room: PreviewRoomMm): string {
   return `${fmtMeters(room.widthMm)} 1 ${fmtMeters(room.depthMm)}`
 }
+
+export function isFurnitureInRoom(
+  item: PlacedFurniture,
+  room: Pick<PreviewRoomMm, 'widthMm' | 'depthMm'>,
+): boolean {
+  return item.xMm >= 0 && item.yMm >= 0 &&
+    item.xMm + item.wMm <= room.widthMm && item.yMm + item.dMm <= room.depthMm
+}

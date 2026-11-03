@@ -14,7 +14,7 @@ import { useFavoriteStore } from '../src/stores/favoriteStore.ts'
 import { usePlanStore } from '../src/stores/planStore.ts'
 import { useScanStore } from '../src/stores/scanStore.ts'
 import { resetMockData } from '../src/utils/resetMock.ts'
-import { configureStorage, createMemoryStorage, readJSON } from '../src/utils/storage.ts'
+import { configureStorage, createMemoryStorage, readJSON, retryFailedStorageWrites } from '../src/utils/storage.ts'
 
 describe('resetMockData', { concurrency: false }, () => {
   beforeEach(() => {
@@ -67,4 +67,27 @@ describe('resetMockData', { concurrency: false }, () => {
     assert.equal(useCatalogStore.getState().products.length, productCount)
     assert.equal(useCatalogStore.getState().products, PRODUCTS)
   })
+})
+
+
+it('partial reset failures are recorded and retry persists the cleared state', () => {
+  const memory = createMemoryStorage()
+  let fail = true
+  const writes: string[] = []
+  configureStorage({
+    getItem: memory.getItem,
+    setItem: (key, value) => {
+      writes.push(key)
+      if (fail && key === PLANS_STORAGE_KEY) throw Error('quota')
+      memory.setItem(key, value)
+    },
+  })
+  usePlanStore.setState({ plans: [], activePlanId: 'old' })
+  const result = resetMockData()
+  assert.deepEqual(result, { ok: false, failedKeys: [PLANS_STORAGE_KEY] })
+  assert.deepEqual(writes, [FAVORITES_STORAGE_KEY, PLANS_STORAGE_KEY, BUDGETS_STORAGE_KEY, SCANS_STORAGE_KEY])
+  assert.equal(usePlanStore.getState().activePlanId, null)
+  fail = false
+  assert.deepEqual(retryFailedStorageWrites(), [{ ok: true }])
+  assert.deepEqual(readJSON(PLANS_STORAGE_KEY, null), { plans: [], activePlanId: null })
 })

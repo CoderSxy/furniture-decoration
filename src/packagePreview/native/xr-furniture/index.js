@@ -19,6 +19,9 @@ Component({
     },
   },
   methods: {
+    onReady() {
+      this.triggerEvent('ready')
+    },
     onError() {
       this.triggerEvent('error')
     },
