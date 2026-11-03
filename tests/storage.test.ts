@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { FAVORITES_STORAGE_KEY } from '../src/constants/storageKeys.ts'
+import { FAVORITES_STORAGE_KEY, PLANS_STORAGE_KEY } from '../src/constants/storageKeys.ts'
 import {
   configureStorage,
   createMemoryStorage,
@@ -10,6 +10,10 @@ import {
 
 test('favorites key is fd:favorites', () => {
   assert.equal(FAVORITES_STORAGE_KEY, 'fd:favorites')
+})
+
+test('plans key is fd:plans', () => {
+  assert.equal(PLANS_STORAGE_KEY, 'fd:plans')
 })
 
 test('memory storage round-trips JSON and recovers from bad payloads', () => {
