@@ -1,15 +1,17 @@
 # 家具装修
 
-微信小程序「家具装修」MVP。当前里程碑：**M4 房型 / 空间扫描**（VisionKit v2 水平面测量 / 手填降级 / 方案详情平面图）。
+微信小程序「家具装修」MVP。当前里程碑：**M5 AI 选品 + 2D/轻量 3D 预览**（本地 mock 推荐 / 2D 俯视必达 / xr-frame cube 增强）。
 
 ## 环境
 
 - Node.js `>=22.23.4 <23`（推荐 22.23.4）
 - pnpm 10.x
 - 微信开发者工具（稳定版）
-- M4 主路径建议真机（至少 1 台 iOS 或安卓）。没有真机时只验收手填降级，并在对比文档标明「缺真机，VisionKit 主路径未测」。
+- 预览 3D 需要基础库 `>= 2.32.0`。开发者工具或真机若不支持 xr-frame，页面隐藏 2D/3D 切换并显示「当前基础库不支持 3D 预览」，2D 仍可用。
 
 本机自备 AppID。把真实 `appid` 写在 `project.private.config.json`（已 gitignore），仓库内 `project.config.json` 只保留占位 `touristappid`。
+
+可选：在未跟踪的 `.env` 里设置 `TARO_APP_AI_RECOMMEND_URL` 才会改走 `Taro.request`。不要把模型 Key、Authorization 或真实 URL 写进仓库。未设置时使用 `src/mocks/aiRecommend.ts`。
 
 ## 本地运行
 
@@ -20,7 +22,7 @@ pnpm test
 pnpm build:weapp
 ```
 
-扫描页使用原生 `Camera` + VisionKit，**热更新不可用**。请用 `pnpm build:weapp` 后用微信开发者工具打开 `dist/` 预览，不要只靠 `dev:weapp` HMR 判断摄像头是否工作。
+AI / 预览在分包 `packagePreview`。**xr-frame 热更新不可用**。请用 `pnpm build:weapp` 后用微信开发者工具打开 `dist/` 预览 3D，不要只靠 `dev:weapp` HMR 判断 cube 场景。
 
 `pnpm dev:weapp` 仍会把 weapp 产物写到 `dist/`。用微信开发者工具「导入项目」：
 
@@ -40,14 +42,21 @@ pnpm build:weapp
 
 开发配置 `config/dev.ts` 已设置 `mini.debugReact: true`，用于规避 Zustand 5 在 Taro Vite `dev:weapp` 下的 `taro.react_production_min.create is not a function`。修改该配置后必须重新跑 `pnpm dev:weapp`。
 
-## M4 行为
+## M5 行为
 
-- 方案详情且阶段为「量房」时显示「采集房型」，进入分包页 `/packageScan/pages/scan/index?planId=`。
-- 基础库 `SDKVersion >= 2.22.0` 时尝试 VisionKit v2 水平面（`track.plane.mode: 1`）。地面两对点分别得到长度、宽度（毫米）；层高默认 2800mm 可改；`source` 为 VisionKit 测量。
-- 不支持 v2、会话 `start` 失败、拒绝隐私或摄像头、开发者工具无 VK 时，降级为手填长宽高（均须 >0）+ 最多 3 张相册参考图。图片只存本地临时路径，不上云。`source` 为手动填写。
-- 方案详情有扫描时显示「长 × 宽 × 高 mm」、简易矩形平面图、来源文案；无扫描不崩溃。
-- 扫描写入 Taro storage，key 为 `fd:scans`，每方案一条，后写覆盖。
-- 不引入 `threejs-miniprogram`，不把重建模型打进小程序包。不接支付、不接 AI。
+- 方案详情始终显示「AI 选品」「预览」，进入 `/packagePreview/pages/ai/recommend?planId=` 与 `/packagePreview/pages/preview/index?planId=`。
+- AI 选品是本地函数，签名 `recommendProducts(req) => Promise<AiRecommendItem[]>`，延迟 400ms。过滤同房间、同风格、未在方案中的商品；按 `abs(priceFen - budgetFen / 5)` 取 3 件，不足则放宽风格。同一 `planId` 连续两次结果一致。
+- 方案没有风格字段：用方案内第一件商品的风格，否则 `modern`。`budgetFen` 等于面积预算总额 `round(areaM2 * 80000)`。
+- 无候选时列表为空，文案「暂无推荐，请先放宽预算或去选品」。
+- 「加入方案」写入该 `planId`（不要求先点「设为当前」），然后重算预算；家具占用随商品 `priceFen` 增加。
+- 预览默认 2D。有扫描用 `RoomScan` 长宽，否则房间 4000×3000mm。家具按 `sizeMm` 沿长边自动排布，可拖动，刷新后回到自动排布，坐标不进 `fd:*`。
+- 轻量 3D：地面平面 + cube（mm→m，1 单位 = 1m），不加载 glTF。基础库 < 2.32.0 或场景报错则降级 2D。
+- 不接真实大模型，不把模型文件打进主包，不引入 threejs。
+
+## M4 行为（仍有效）
+
+- 方案详情且阶段为「量房」时显示「采集房型」。
+- VisionKit v2 或手填降级写入 `fd:scans`。扫描结果可被 M5 预览使用。
 
 ## 隐私指引（实现期配置，本 MVP 不提审）
 
