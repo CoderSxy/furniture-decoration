@@ -1,0 +1,78 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import {
+  CATEGORY_FILTER_OPTIONS,
+  CATEGORY_LABELS,
+  PRICE_RANGE_FILTER_OPTIONS,
+  PRICE_RANGE_LABELS,
+  ROOM_FILTER_OPTIONS,
+  ROOM_LABELS,
+  STYLE_FILTER_OPTIONS,
+  STYLE_LABELS,
+} from '../src/constants/labels.ts'
+
+test('room / style / category labels match the M1 enum table', () => {
+  assert.deepEqual(ROOM_LABELS, {
+    living: '客厅',
+    bedroom: '卧室',
+    kitchen: '厨房',
+    bathroom: '卫生间',
+    study: '书房',
+    balcony: '阳台',
+  })
+  assert.deepEqual(STYLE_LABELS, {
+    modern: '现代',
+    nordic: '北欧',
+    chinese: '中式',
+    lightLuxury: '轻奢',
+  })
+  assert.deepEqual(CATEGORY_LABELS, {
+    sofa: '沙发',
+    bed: '床',
+    table: '桌几',
+    cabinet: '柜类',
+    chair: '椅凳',
+    light: '灯具',
+    other: '其他',
+  })
+})
+
+test('price range labels use the four M1 bands plus 全部', () => {
+  assert.deepEqual(PRICE_RANGE_LABELS, {
+    all: '全部',
+    lt1000: '1千以下',
+    '1000to3000': '1–3千',
+    '3000to8000': '3–8千',
+    gte8000: '8千以上',
+  })
+})
+
+test('filter option rows start with all and cover every enum', () => {
+  assert.deepEqual(CATEGORY_FILTER_OPTIONS, [
+    'all',
+    'sofa',
+    'bed',
+    'table',
+    'cabinet',
+    'chair',
+    'light',
+    'other',
+  ])
+  assert.deepEqual(ROOM_FILTER_OPTIONS, [
+    'all',
+    'living',
+    'bedroom',
+    'kitchen',
+    'bathroom',
+    'study',
+    'balcony',
+  ])
+  assert.deepEqual(STYLE_FILTER_OPTIONS, ['all', 'modern', 'nordic', 'chinese', 'lightLuxury'])
+  assert.deepEqual(PRICE_RANGE_FILTER_OPTIONS, [
+    'all',
+    'lt1000',
+    '1000to3000',
+    '3000to8000',
+    'gte8000',
+  ])
+})

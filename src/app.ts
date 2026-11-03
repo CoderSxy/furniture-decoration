@@ -1,17 +1,29 @@
 import { PropsWithChildren } from 'react'
-import { useLaunch } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
+import { useFavoriteStore } from './stores/favoriteStore'
+import { configureStorage } from './utils/storage'
 
 import './app.scss'
 
-function App({ children }: PropsWithChildren<any>) {
-  useLaunch(() => {
-    console.log('App launched.')
-  })
+configureStorage({
+  getItem: (key) => {
+    try {
+      const value = Taro.getStorageSync(key)
+      if (value === '' || value == null) return null
+      return typeof value === 'string' ? value : JSON.stringify(value)
+    } catch {
+      return null
+    }
+  },
+  setItem: (key, value) => {
+    Taro.setStorageSync(key, value)
+  },
+})
 
-  // children 是将要会渲染的页面
+useFavoriteStore.getState().hydrate()
+
+function App({ children }: PropsWithChildren<any>) {
   return children
 }
-  
-
 
 export default App
