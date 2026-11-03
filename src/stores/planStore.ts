@@ -97,6 +97,7 @@ export type PlanState = {
   addProductToActivePlan: (productId: string) => AddProductResult
   removeProductFromPlan: (planId: string, productId: string) => void
   advanceStage: (planId: string) => boolean
+  reset: () => void
 }
 
 export const usePlanStore = create<PlanState>((set, get) => ({
@@ -169,6 +170,10 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     persist(next, get().activePlanId)
     set({ plans: next })
     return true
+  },
+  reset: () => {
+    persist([], null)
+    set({ plans: [], activePlanId: null })
   },
 }))
 

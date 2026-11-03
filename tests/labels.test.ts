@@ -1,6 +1,9 @@
+// tests/labels.test.ts
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  BUDGET_CATEGORY_LABELS,
+  BUDGET_CATEGORY_ORDER,
   CATEGORY_FILTER_OPTIONS,
   CATEGORY_LABELS,
   PRICE_RANGE_FILTER_OPTIONS,
@@ -96,4 +99,14 @@ test('plan stage labels match the M2 table and cannot skip', () => {
     'study',
     'balcony',
   ])
+})
+
+test('budget category labels match the M3 table and keep a stable order', () => {
+  assert.deepEqual(BUDGET_CATEGORY_LABELS, {
+    furniture: '家具',
+    material: '材料',
+    labor: '人工',
+    other: '其他',
+  })
+  assert.deepEqual(BUDGET_CATEGORY_ORDER, ['furniture', 'material', 'labor', 'other'])
 })

@@ -1,3 +1,4 @@
+// src/pages/mine/index.tsx
 import { Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { ProductCard } from '../../components/product-card'
@@ -5,6 +6,7 @@ import { useCatalogStore } from '../../stores/catalogStore'
 import { useFavoriteStore } from '../../stores/favoriteStore'
 import type { Product } from '../../types/domain'
 import { productDetailUrl } from '../../utils/navigation'
+import { resetMockData } from '../../utils/resetMock'
 import './index.scss'
 
 export default function MinePage() {
@@ -14,6 +16,18 @@ export default function MinePage() {
     .sort((left, right) => right.savedAt.localeCompare(left.savedAt))
     .map((record) => products.find((product) => product.id === record.productId))
     .filter((product): product is Product => product != null)
+
+  const onReset = async () => {
+    const result = await Taro.showModal({
+      title: '重置 mock',
+      content: '将清除收藏、方案、预算和扫描，商品列表不受影响。',
+      confirmText: '重置',
+      cancelText: '取消',
+    })
+    if (!result.confirm) return
+    resetMockData()
+    Taro.showToast({ title: '已重置', icon: 'success' })
+  }
 
   return (
     <View className='page'>
@@ -38,6 +52,10 @@ export default function MinePage() {
           />
         ))
       )}
+      <Text className='mine-note'>数据仅保存在本机。不含账号、支付或云端备份。</Text>
+      <View className='mine-reset' onClick={() => { void onReset() }}>
+        <Text className='mine-reset__text'>重置 mock</Text>
+      </View>
     </View>
   )
 }

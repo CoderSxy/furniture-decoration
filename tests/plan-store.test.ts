@@ -179,4 +179,20 @@ describe('planStore', { concurrency: false }, () => {
     assert.equal(usePlanStore.getState().activePlanId, 'plan-restore')
     assert.deepEqual(usePlanStore.getState().plans, [persisted])
   })
+
+  it('reset clears plans memory and fd:plans', () => {
+    const created = usePlanStore.getState().createPlan({
+      title: '客厅',
+      roomType: 'living',
+      areaM2: 32,
+    })
+    assert.equal(created.ok, true)
+    usePlanStore.getState().reset()
+    assert.deepEqual(usePlanStore.getState().plans, [])
+    assert.equal(usePlanStore.getState().activePlanId, null)
+    assert.deepEqual(readJSON(PLANS_STORAGE_KEY, { keep: true }), {
+      plans: [],
+      activePlanId: null,
+    })
+  })
 })

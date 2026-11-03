@@ -1,7 +1,11 @@
+// src/app.ts
 import { PropsWithChildren } from 'react'
 import Taro from '@tarojs/taro'
+import { useBudgetStore } from './stores/budgetStore'
+import { useCatalogStore } from './stores/catalogStore'
 import { useFavoriteStore } from './stores/favoriteStore'
 import { usePlanStore } from './stores/planStore'
+import { useScanStore } from './stores/scanStore'
 import { configureStorage } from './utils/storage'
 
 import './app.scss'
@@ -23,6 +27,12 @@ configureStorage({
 
 useFavoriteStore.getState().hydrate()
 usePlanStore.getState().hydrate()
+useBudgetStore.getState().hydrate()
+useScanStore.getState().hydrate()
+useBudgetStore.getState().ensureForPlans(
+  usePlanStore.getState().plans,
+  useCatalogStore.getState().products,
+)
 
 function App({ children }: PropsWithChildren<any>) {
   return children

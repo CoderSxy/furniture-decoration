@@ -1,9 +1,11 @@
+// src/pages/catalog/detail.tsx
 import { Image, Swiper, SwiperItem, Text, View } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { CATEGORY_LABELS, ROOM_LABELS, STYLE_LABELS } from '../../constants/labels'
+import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useFavoriteStore } from '../../stores/favoriteStore'
-import { usePlanStore } from '../../stores/planStore'
+import { selectActivePlan, usePlanStore } from '../../stores/planStore'
 import { formatPriceYuan } from '../../utils/price'
 import './detail.scss'
 
@@ -13,12 +15,14 @@ export default function CatalogDetailPage() {
   const product = useCatalogStore((state) =>
     state.products.find((item) => item.id === productId),
   )
+  const products = useCatalogStore((state) => state.products)
   const favorited = useFavoriteStore((state) =>
     state.items.some((item) => item.productId === productId),
   )
   const toggleFavorite = useFavoriteStore((state) => state.toggleFavorite)
   const activePlanId = usePlanStore((state) => state.activePlanId)
   const addProductToActivePlan = usePlanStore((state) => state.addProductToActivePlan)
+  const ensureForPlan = useBudgetStore((state) => state.ensureForPlan)
 
   if (!product) {
     return (
@@ -38,6 +42,8 @@ export default function CatalogDetailPage() {
     }
     const result = addProductToActivePlan(product.id)
     if (result === 'added') {
+      const active = selectActivePlan(usePlanStore.getState())
+      if (active) ensureForPlan(active, products)
       Taro.showToast({ title: '已加入当前方案', icon: 'success' })
     } else if (result === 'duplicate') {
       Taro.showToast({ title: '已在当前方案中', icon: 'none' })

@@ -1,7 +1,9 @@
+// src/pages/plans/detail.tsx
 import { Text, View } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { ProductCard } from '../../components/product-card'
 import { ROOM_LABELS, STAGE_LABELS, STAGE_ORDER } from '../../constants/labels'
+import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { selectPlanById, usePlanStore } from '../../stores/planStore'
 import type { Product } from '../../types/domain'
@@ -16,6 +18,7 @@ export default function PlanDetailPage() {
   const removeProductFromPlan = usePlanStore((state) => state.removeProductFromPlan)
   const advanceStage = usePlanStore((state) => state.advanceStage)
   const products = useCatalogStore((state) => state.products)
+  const ensureForPlan = useBudgetStore((state) => state.ensureForPlan)
 
   if (!plan) {
     return (
@@ -31,6 +34,12 @@ export default function PlanDetailPage() {
     .filter((item): item is Product => item != null)
   const blocked = advanceBlockedReason(plan)
   const canAdvance = canAdvanceStage(plan)
+
+  const onRemove = (productId: string) => {
+    removeProductFromPlan(plan.id, productId)
+    const next = selectPlanById(usePlanStore.getState(), plan.id)
+    if (next) ensureForPlan(next, products)
+  }
 
   return (
     <View className='page'>
@@ -73,10 +82,7 @@ export default function PlanDetailPage() {
                 Taro.navigateTo({ url: productDetailUrl(id) })
               }}
             />
-            <View
-              className='plan-product__remove'
-              onClick={() => removeProductFromPlan(plan.id, product.id)}
-            >
+            <View className='plan-product__remove' onClick={() => onRemove(product.id)}>
               <Text className='plan-product__remove-text'>移除</Text>
             </View>
           </View>
