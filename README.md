@@ -22,6 +22,16 @@ pnpm test
 pnpm build:weapp
 ```
 
+后端（仓库根目录 `server/`，自有 package.json）：
+
+```bash
+pnpm --dir server install
+pnpm --dir server test
+pnpm --dir server dev
+```
+
+`server/.env` 只放在本机，变量名见 `server/.env.example`。不要把 AppSecret 或数据库密码写进仓库。
+
 AI / 预览在分包 `packagePreview`。**xr-frame 热更新不可用**。请用 `pnpm build:weapp` 后用微信开发者工具打开 `dist/` 预览 3D，不要只靠 `dev:weapp` HMR 判断 cube 场景。
 
 `pnpm dev:weapp` 仍会把 weapp 产物写到 `dist/`。用微信开发者工具「导入项目」：
