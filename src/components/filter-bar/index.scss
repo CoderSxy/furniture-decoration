@@ -1,0 +1,49 @@
+.filter-bar {
+  padding: 8px 0 16px;
+}
+
+.filter-bar__legend {
+  display: block;
+  margin: 12px 0 8px;
+  font-size: 24px;
+  color: var(--color-text-muted);
+}
+
+.filter-bar__row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.filter-bar__chip {
+  margin-right: 12px;
+  margin-bottom: 12px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+}
+
+.filter-bar__chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.filter-bar__chip-text {
+  font-size: 24px;
+  color: var(--color-text);
+}
+
+.filter-bar__chip-text--active {
+  color: #ffffff;
+}
+
+.filter-bar__clear {
+  margin-top: 8px;
+  padding: 12px 0;
+}
+
+.filter-bar__clear-text {
+  font-size: 26px;
+  color: var(--color-primary);
+}
