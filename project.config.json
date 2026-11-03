@@ -2,7 +2,7 @@
   "miniprogramRoot": "dist/",
   "projectname": "furniture-decoration",
   "description": "家具装修微信小程序",
-  "appid": "touristappid",
+  "appid": "wx678305a130615b19",
   "setting": {
     "urlCheck": true,
     "es6": false,
