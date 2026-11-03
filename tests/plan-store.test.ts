@@ -118,6 +118,23 @@ describe('planStore', { concurrency: false }, () => {
     assert.equal(active?.stage, 'measure')
   })
 
+  it('addProductToPlan writes the given plan without switching activePlanId', () => {
+    const first = usePlanStore.getState().createPlan({ title: 'A', roomType: 'living', areaM2: 12 })
+    const second = usePlanStore.getState().createPlan({ title: 'B', roomType: 'study', areaM2: 8 })
+    assert.equal(first.ok && second.ok, true)
+    if (!first.ok || !second.ok) throw new Error('expected two plans')
+    assert.equal(usePlanStore.getState().activePlanId, second.plan.id)
+
+    assert.equal(usePlanStore.getState().addProductToPlan(first.plan.id, 'p-1'), 'added')
+    assert.equal(usePlanStore.getState().addProductToPlan(first.plan.id, 'p-1'), 'duplicate')
+    assert.equal(usePlanStore.getState().addProductToPlan('missing', 'p-1'), 'no-active-plan')
+    assert.equal(usePlanStore.getState().activePlanId, second.plan.id)
+    const target = usePlanStore.getState().plans.find((item) => item.id === first.plan.id)
+    assert.deepEqual(target?.productIds, ['p-1'])
+    assert.equal(target?.coverProductId, 'p-1')
+    assert.equal(target?.stage, 'measure')
+  })
+
   it('removeProductFromPlan does not regress stage', () => {
     const created = usePlanStore.getState().createPlan({ title: 'A', roomType: 'living', areaM2: 12 })
     if (!created.ok) throw new Error('expected plan')
