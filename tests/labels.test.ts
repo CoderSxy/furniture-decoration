@@ -5,6 +5,7 @@ import {
   BUDGET_CATEGORY_ORDER,
   CATEGORY_FILTER_OPTIONS,
   CATEGORY_LABELS,
+  EMPTY_AI_RECOMMEND_TEXT,
   PRICE_RANGE_FILTER_OPTIONS,
   PRICE_RANGE_LABELS,
   ROOM_CREATE_OPTIONS,
@@ -15,6 +16,7 @@ import {
   STAGE_ORDER,
   STYLE_FILTER_OPTIONS,
   STYLE_LABELS,
+  XR_FRAME_UNSUPPORTED_TEXT,
 } from '../src/constants/labels.ts'
 
 test('room / style / category labels match the M1 enum table', () => {
@@ -116,4 +118,9 @@ test('scan source labels match M4 copy', () => {
     'visionkit-v2': 'VisionKit 测量',
     manual: '手动填写',
   })
+})
+
+test('M5 copy matches the design strings exactly', () => {
+  assert.equal(EMPTY_AI_RECOMMEND_TEXT, '暂无推荐，请先放宽预算或去选品')
+  assert.equal(XR_FRAME_UNSUPPORTED_TEXT, '当前基础库不支持 3D 预览')
 })
