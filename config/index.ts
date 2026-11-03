@@ -24,6 +24,10 @@ export default defineConfig<'vite'>(async (merge) => {
     },
     copy: {
       patterns: [
+        {
+          from: 'src/packagePreview/native/xr-furniture/',
+          to: 'packagePreview/native/xr-furniture/',
+        },
       ],
       options: {
       }
