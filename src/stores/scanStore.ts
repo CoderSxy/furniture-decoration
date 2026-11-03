@@ -1,3 +1,5 @@
+import { isValidScanDimension } from '../utils/domainLimits'
+import { MAX_SCAN_PHOTOS } from '../utils/scanMeasure'
 import { create } from 'zustand'
 import { SCANS_STORAGE_KEY } from '../constants/storageKeys'
 import type { RoomScan } from '../types/domain'
@@ -13,9 +15,11 @@ function parseScan(key: string, input: unknown): RoomScan | null {
   const row = input as Record<string, unknown>
   if (typeof row.planId !== 'string' || row.planId.length === 0 || row.planId !== key) return null
   if (row.source !== 'visionkit-v2' && row.source !== 'manual') return null
-  if (typeof row.widthMm !== 'number' || !Number.isFinite(row.widthMm)) return null
-  if (typeof row.depthMm !== 'number' || !Number.isFinite(row.depthMm)) return null
-  if (typeof row.heightMm !== 'number' || !Number.isFinite(row.heightMm)) return null
+  if (!isValidScanDimension(row.widthMm)) return null
+  if (!isValidScanDimension(row.depthMm)) return null
+  if (!isValidScanDimension(row.heightMm)) return null
+  if (!Array.isArray(row.photoPaths) || row.photoPaths.length > MAX_SCAN_PHOTOS ||
+    row.photoPaths.some((path) => typeof path !== 'string' || path.length === 0)) return null
   if (typeof row.capturedAt !== 'string' || row.capturedAt.length === 0) return null
   return {
     planId: row.planId,
@@ -59,7 +63,9 @@ export const useScanStore = create<ScanState>((set, get) => ({
     set({ scans: {} })
   },
   upsert: (scan) => {
-    const scans = { ...get().scans, [scan.planId]: scan }
+    const valid = parseScan(scan.planId, scan)
+    if (!valid) return
+    const scans = { ...get().scans, [valid.planId]: valid }
     persist(scans)
     set({ scans })
   },

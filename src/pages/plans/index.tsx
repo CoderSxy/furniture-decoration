@@ -15,7 +15,7 @@ import './index.scss'
 const CREATE_ERRORS: Record<'invalid-title' | 'invalid-room' | 'invalid-area', string> = {
   'invalid-title': '请填写标题',
   'invalid-room': '请选择房间',
-  'invalid-area': '面积必须大于 0',
+  'invalid-area': '面积须大于 0 且不超过 10000㎡',
 }
 
 export default function PlansPage() {

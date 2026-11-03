@@ -1,5 +1,5 @@
 import { Text, View } from '@tarojs/components'
-import Taro, { useRouter } from '@tarojs/taro'
+import Taro, { useDidHide, useRouter } from '@tarojs/taro'
 import { useEffect, useRef, useState } from 'react'
 import type { ProbeResult } from '../../../utils/scanCapability'
 import { createScanCancellation, prepareScanSession, releaseScanSession } from '../../../utils/scanCapability'
@@ -19,6 +19,9 @@ export default function ScanPage() {
   const [session, setSession] = useState<ProbeResult['session']>(null)
 
   const cancelRef = useRef<() => void>(() => {})
+
+  // Returning from background keeps manual mode; re-enter the page to scan again.
+  useDidHide(() => cancelRef.current())
 
   useEffect(() => {
     if (!planId) return
@@ -81,11 +84,7 @@ export default function ScanPage() {
             releaseScanSession(session)
             Taro.navigateBack()
           }}
-          onFallback={() => {
-            releaseScanSession(session)
-            setSession(null)
-            setMode('manual')
-          }}
+          onFallback={() => cancelRef.current()}
         />
       </View>
     )
@@ -93,6 +92,7 @@ export default function ScanPage() {
 
   return (
     <View className='page'>
+      <Text>相机停止或离开页面后改用手填；重新进入可再次测量。</Text>
       <ManualForm
         planId={planId}
         onSaved={() => {

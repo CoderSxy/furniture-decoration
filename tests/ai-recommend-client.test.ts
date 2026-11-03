@@ -62,17 +62,30 @@ test('fetchAiRecommendations POSTs JSON body to env URL without secrets', async 
   assert.deepEqual(items, [{ productId: 'remote', score: 1, reason: '远程' }])
 })
 
-test('fetchAiRecommendations returns [] when remote payload is not an array', async () => {
-  const items = await fetchAiRecommendations(req, {
+test('fetchAiRecommendations rejects malformed success payload', async () => {
+  await assert.rejects(fetchAiRecommendations(req, {
     getUrl: () => 'https://example.invalid/ai/recommend',
     request: async () => ({ data: { error: 'nope' } }),
-    recommend: async () => mockItems,
-  })
-  assert.deepEqual(items, [])
+  }))
 })
 
 test('remote recommendations reject HTTP errors and discard malformed items', async () => {
   const deps = { getUrl: () => 'https://example.invalid' }
   await assert.rejects(fetchAiRecommendations(req, { ...deps, request: async () => ({ statusCode: 503, data: [] }) }))
   assert.deepEqual(await fetchAiRecommendations(req, { ...deps, request: async () => ({ statusCode: 200, data: [null, {}, { productId: 'a', score: Infinity, reason: 'x' }, mockItems[0]] }) }), mockItems)
+})
+
+ test('catalog association, deduplication and score bounds apply to remote results', async () => {
+  const items = await fetchAiRecommendations(req, {
+    getUrl: () => 'https://example.invalid',
+    products: [{ id: 'known' }],
+    request: async () => ({ data: [
+      { productId: 'unknown', score: 1, reason: 'x' },
+      { productId: 'known', score: 2, reason: 'bad' },
+      { productId: 'known', score: -1, reason: 'bad' },
+      { productId: 'known', score: 0, reason: 'first' },
+      { productId: 'known', score: 1, reason: 'duplicate' },
+    ] }),
+  })
+  assert.deepEqual(items, [{ productId: 'known', score: 0, reason: 'first' }])
 })

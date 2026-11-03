@@ -7,7 +7,7 @@ import { useBudgetStore } from '../../../stores/budgetStore'
 import { useCatalogStore } from '../../../stores/catalogStore'
 import { selectPlanById, usePlanStore } from '../../../stores/planStore'
 import type { AiRecommendItem } from '../../../types/aiRecommend'
-import { fetchAiRecommendations } from '../../../utils/aiRecommendClient'
+import { fetchAiRecommendations, filterRecommendations } from '../../../utils/aiRecommendClient'
 import { buildAiRecommendRequest } from '../../../utils/aiRecommendRequest'
 import { previewPageUrl, productDetailUrl } from '../../../utils/navigation'
 import './recommend.scss'
@@ -33,7 +33,7 @@ export default function AiRecommendPage() {
     let cancelled = false
     setLoading(true)
     setError(false)
-    fetchAiRecommendations(buildAiRecommendRequest(plan, products)).then((next) => {
+    fetchAiRecommendations(buildAiRecommendRequest(plan, products), { products }).then((next) => {
       if (cancelled) return
       setItems(next)
     }).catch(() => {
@@ -56,6 +56,8 @@ export default function AiRecommendPage() {
     )
   }
 
+  const displayItems = filterRecommendations(items, products)
+
   const onAdd = (productId: string) => {
     const result = addProductToPlan(plan.id, productId)
     if (result === 'added') {
@@ -74,11 +76,11 @@ export default function AiRecommendPage() {
       <Text className='ai-title'>AI 选品</Text>
       {loading ? <Text className='ai-status'>正在匹配家具…</Text> : null}
       {error ? <View onClick={() => setAttempt((value) => value + 1)}><Text>推荐失败，点击重试</Text></View> : null}
-      {!loading && !error && items.length === 0 ? (
+      {!loading && !error && displayItems.length === 0 ? (
         <Text className='ai-empty'>{EMPTY_AI_RECOMMEND_TEXT}</Text>
       ) : null}
       {!loading
-        ? items.map((item) => {
+        ? displayItems.map((item) => {
             const product = products.find((row) => row.id === item.productId)
             if (!product) return null
             const joined = plan.productIds.includes(item.productId)

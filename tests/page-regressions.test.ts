@@ -110,3 +110,108 @@ test('scan offers manual entry while session start is pending and releases on ca
   assert.equal(destroyed, 1)
   delete Taro.createVKSession
 })
+
+test('initial null and zero container queries recover without resize; retries are bounded', async () => {
+  const original = Taro.createSelectorQuery
+  let calls = 0
+  Taro.createSelectorQuery = () => {
+    const q = { select: () => q, boundingClientRect: () => q, exec: (cb) => cb([++calls === 1 ? null : { width: calls === 2 ? 0 : 300 }]) }
+    return q
+  }
+  const page = mount(PreviewFloor2d, { room, products: [] })
+  try {
+    Taro.testReady?.()
+    await new Promise((resolve) => setTimeout(resolve, 600)); page.flush()
+    assert.equal(byClass(page.tree, 'preview2d__room')[0]?.props.style.width, '300px')
+    assert.ok(calls <= 8)
+  } finally { page.unmount(); Taro.createSelectorQuery = original }
+})
+
+test('scan hide and camera stop release sessions and return to manual entry', async () => {
+  const { default: ScanPage } = await import('../src/packageScan/pages/scan/index.tsx')
+  for (const event of ['hide', 'stop']) {
+    let destroyed = 0
+    Taro.testPlanId = 'scan-plan'
+    Taro.authorize = async () => ({})
+    Taro.createVKSession = () => ({ start: (cb) => cb(0), destroy: () => { destroyed++ }, hitTest: () => [] })
+    const page = mount(ScanPage)
+    try {
+      await tick(); page.flush()
+      if (event === 'hide') Taro.testHide?.()
+      else nodes(page.tree, (node) => node.type === 'camera')[0].props.onStop?.()
+      await tick(); page.flush()
+      assert.equal(destroyed, 1)
+      assert.match(textContent(page.tree), /手动填写房型/)
+      Taro.testShow?.(); await tick(); page.flush()
+      assert.match(textContent(page.tree), /手动填写房型/)
+    } finally { page.unmount(); delete Taro.createVKSession }
+    assert.equal(destroyed, 1)
+  }
+})
+
+test('AI unknown IDs show empty state; malformed success can retry to legitimate empty array', async () => {
+  Taro.testPlanId = usePlanStore.getState().activePlanId
+  process.env.TARO_APP_AI_RECOMMEND_URL = 'https://example.invalid'
+  for (const data of [[{ productId: 'unknown', score: 1, reason: 'x' }], { error: 'bad' }]) {
+    Taro.request = async () => ({ statusCode: 200, data })
+    const page = mount(AiRecommendPage)
+    try {
+      await tick(); page.flush()
+      if (!Array.isArray(data)) {
+        assert.match(textContent(page.tree), /推荐失败/)
+        Taro.request = async () => ({ statusCode: 200, data: [] })
+        nodes(page.tree, (node) => node.props?.onClick && textContent(node) === '推荐失败，点击重试')[0].props.onClick()
+        await tick(); page.flush()
+      }
+      assert.equal(byClass(page.tree, 'ai-empty').length, 1)
+    } finally { page.unmount() }
+  }
+  delete process.env.TARO_APP_AI_RECOMMEND_URL
+})
+
+test('zero-width retries stop, manual retry recovers, and unmount cancels queued queries', async () => {
+  const original = Taro.createSelectorQuery
+  let calls = 0
+  let width = 0
+  Taro.createSelectorQuery = () => {
+    const q = { select: () => q, boundingClientRect: () => q, exec: (cb) => { calls++; cb([{ width }]) } }
+    return q
+  }
+  let page = mount(PreviewFloor2d, { room, products: [] })
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 700)); page.flush()
+    assert.equal(calls, 6)
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    assert.equal(calls, 6)
+    width = 280
+    nodes(page.tree, (node) => node.props?.onClick && textContent(node) === '画布尚未就绪，点击重试')[0].props.onClick()
+    await tick(); page.flush()
+    assert.equal(byClass(page.tree, 'preview2d__room')[0].props.style.width, '280px')
+    page.unmount()
+    width = 0
+    page = mount(PreviewFloor2d, { room, products: [] })
+    page.unmount()
+    const before = calls
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    assert.equal(calls, before)
+  } finally { page.unmount(); Taro.createSelectorQuery = original }
+})
+
+test('hide cancels pending scan startup and ignores late success', async () => {
+  const { default: ScanPage } = await import('../src/packageScan/pages/scan/index.tsx')
+  let finish
+  let destroyed = 0
+  Taro.testPlanId = 'scan-plan'
+  Taro.authorize = async () => ({})
+  Taro.createVKSession = () => ({ start: (cb) => { finish = cb }, destroy: () => { destroyed++ }, hitTest: () => [] })
+  const page = mount(ScanPage)
+  try {
+    await tick(); page.flush()
+    Taro.testHide()
+    finish(0)
+    await tick(); page.flush()
+    assert.equal(destroyed, 1)
+    assert.match(textContent(page.tree), /手动填写房型/)
+    assert.equal(nodes(page.tree, (node) => node.type === 'camera').length, 0)
+  } finally { page.unmount(); delete Taro.createVKSession }
+})

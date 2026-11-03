@@ -67,7 +67,7 @@ export function MeasureView({ planId, session, onSaved, onFallback }: MeasureVie
   const save = () => {
     const heightMm = parsePositiveMm(heightText)
     if (heightMm == null) {
-      Taro.showToast({ title: '层高必须大于 0', icon: 'none' })
+      Taro.showToast({ title: '层高须大于 0 且不超过 100000 mm', icon: 'none' })
       return
     }
     const ready = { ...state, heightMm }
@@ -96,6 +96,7 @@ export function MeasureView({ planId, session, onSaved, onFallback }: MeasureVie
           devicePosition='back'
           flash='off'
           onError={() => onFallback()}
+          onStop={() => onFallback()}
         />
         <View className='scan-hit' />
       </View>

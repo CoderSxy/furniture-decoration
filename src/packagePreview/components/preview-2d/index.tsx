@@ -62,6 +62,7 @@ export function PreviewFloor2d({ room, products }: PreviewFloor2dProps) {
 
   return (
     <View className='preview2d' id={container.id}>
+      {container.width === 0 ? <Text onClick={container.remeasure}>画布尚未就绪，点击重试</Text> : null}
       <Text className='preview2d__hint'>
         俯视 {room.widthMm} × {room.depthMm} mm，拖动不保存
       </Text>

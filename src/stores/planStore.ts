@@ -1,3 +1,4 @@
+import { isValidArea } from '../utils/domainLimits'
 import { create } from 'zustand'
 import { ROOM_CREATE_OPTIONS, STAGE_ORDER } from '../constants/labels'
 import { PLANS_STORAGE_KEY } from '../constants/storageKeys'
@@ -47,7 +48,7 @@ function parsePlan(input: unknown): Plan | null {
   if (typeof row.id !== 'string' || row.id.length === 0) return null
   if (typeof row.title !== 'string' || row.title.trim().length === 0) return null
   if (!isRoomType(row.roomType)) return null
-  if (typeof row.areaM2 !== 'number' || !Number.isFinite(row.areaM2) || row.areaM2 <= 0) return null
+  if (!isValidArea(row.areaM2)) return null
   if (!isPlanStage(row.stage)) return null
   if (typeof row.createdAt !== 'string' || row.createdAt.length === 0) return null
   if (typeof row.updatedAt !== 'string' || row.updatedAt.length === 0) return null
