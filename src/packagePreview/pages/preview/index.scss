@@ -1,28 +1,21 @@
 .page {
   min-height: 100vh;
-  padding: 32px 24px;
+  padding: 24px 24px 48px;
   background: var(--color-surface);
   box-sizing: border-box;
 }
 
-.page__title {
+.preview-title {
   display: block;
   font-size: 40px;
   font-weight: 600;
   color: var(--color-text);
 }
 
-.page__duty {
+.preview-mode,
+.preview-missing {
   display: block;
-  margin-top: 16px;
-  font-size: 28px;
+  margin-top: 12px;
+  font-size: 26px;
   color: var(--color-text-muted);
-  line-height: 1.5;
-}
-
-.page__meta {
-  display: block;
-  margin-top: 24px;
-  font-size: 24px;
-  color: var(--color-primary);
 }
