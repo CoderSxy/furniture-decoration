@@ -1,8 +1,9 @@
 import { Image, Swiper, SwiperItem, Text, View } from '@tarojs/components'
-import { useRouter } from '@tarojs/taro'
+import Taro, { useRouter } from '@tarojs/taro'
 import { CATEGORY_LABELS, ROOM_LABELS, STYLE_LABELS } from '../../constants/labels'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useFavoriteStore } from '../../stores/favoriteStore'
+import { usePlanStore } from '../../stores/planStore'
 import { formatPriceYuan } from '../../utils/price'
 import './detail.scss'
 
@@ -16,6 +17,8 @@ export default function CatalogDetailPage() {
     state.items.some((item) => item.productId === productId),
   )
   const toggleFavorite = useFavoriteStore((state) => state.toggleFavorite)
+  const activePlanId = usePlanStore((state) => state.activePlanId)
+  const addProductToActivePlan = usePlanStore((state) => state.addProductToActivePlan)
 
   if (!product) {
     return (
@@ -27,6 +30,19 @@ export default function CatalogDetailPage() {
 
   const gallery = product.imageUrls.length > 0 ? product.imageUrls : [product.coverUrl]
   const roomText = product.rooms.map((room) => ROOM_LABELS[room]).join(' / ')
+
+  const onAddToPlan = () => {
+    if (activePlanId == null) {
+      Taro.switchTab({ url: '/pages/plans/index' })
+      return
+    }
+    const result = addProductToActivePlan(product.id)
+    if (result === 'added') {
+      Taro.showToast({ title: '已加入当前方案', icon: 'success' })
+    } else if (result === 'duplicate') {
+      Taro.showToast({ title: '已在当前方案中', icon: 'none' })
+    }
+  }
 
   return (
     <View className='page'>
@@ -49,6 +65,18 @@ export default function CatalogDetailPage() {
       <Text className='detail-desc'>{product.description}</Text>
       <View className='detail-fav' onClick={() => toggleFavorite(product.id)}>
         <Text className='detail-fav__text'>{favorited ? '已收藏' : '收藏'}</Text>
+      </View>
+      <View
+        className={activePlanId == null ? 'detail-plan detail-plan--ghost' : 'detail-plan'}
+        onClick={onAddToPlan}
+      >
+        <Text
+          className={
+            activePlanId == null ? 'detail-plan__text detail-plan__text--ghost' : 'detail-plan__text'
+          }
+        >
+          {activePlanId == null ? '请先新建方案' : '加入当前方案'}
+        </Text>
       </View>
     </View>
   )
