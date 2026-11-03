@@ -1,5 +1,5 @@
 import { loadEnv, type Env } from '../src/env.ts'
-import type { AppDeps, MysqlPort, RedisPort, WechatPort } from '../src/db/ports.ts'
+import type { AppDeps, MysqlPort, RedisPort, SyncItemRow, UserRow, WechatPort } from '../src/db/ports.ts'
 
 export function baseEnv(patch: Partial<Env> = {}): Env {
   return {
@@ -20,21 +20,36 @@ export function baseEnv(patch: Partial<Env> = {}): Env {
 }
 
 export function memoryMysql(): MysqlPort {
-  return {
-    async upsertUserByOpenid() {
-      throw new Error('mysql not used in task 1')
+  const users = new Map<string, UserRow>()
+  const items = new Map<string, SyncItemRow>()
+  const itemKey = (userId: string, kind: string, itemId: string) => `${userId}|${kind}|${itemId}`
+  const api: MysqlPort = {
+    async upsertUserByOpenid(openid, now, id) {
+      for (const row of users.values()) {
+        if (row.openid === openid) {
+          const next = { ...row, updated_at: now, last_login_at: now }
+          users.set(row.id, next)
+          return next
+        }
+      }
+      const created: UserRow = { id, openid, created_at: now, updated_at: now, last_login_at: now }
+      users.set(id, created)
+      return created
     },
-    async listSyncItems() {
-      return []
+    async listSyncItems(userId) {
+      return [...items.values()].filter((row) => row.user_id === userId)
     },
-    async getSyncItem() {
-      return null
+    async getSyncItem(userId, kind, itemId) {
+      return items.get(itemKey(userId, kind, itemId)) ?? null
     },
-    async upsertSyncItem() {},
+    async upsertSyncItem(row) {
+      items.set(itemKey(row.user_id, row.kind, row.item_id), row)
+    },
     async withTransaction(fn) {
-      return fn(this)
+      return fn(api)
     },
   }
+  return api
 }
 
 export function memoryRedis(): RedisPort {
