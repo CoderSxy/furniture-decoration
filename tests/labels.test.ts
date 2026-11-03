@@ -5,8 +5,11 @@ import {
   CATEGORY_LABELS,
   PRICE_RANGE_FILTER_OPTIONS,
   PRICE_RANGE_LABELS,
+  ROOM_CREATE_OPTIONS,
   ROOM_FILTER_OPTIONS,
   ROOM_LABELS,
+  STAGE_LABELS,
+  STAGE_ORDER,
   STYLE_FILTER_OPTIONS,
   STYLE_LABELS,
 } from '../src/constants/labels.ts'
@@ -74,5 +77,23 @@ test('filter option rows start with all and cover every enum', () => {
     '1000to3000',
     '3000to8000',
     'gte8000',
+  ])
+})
+
+test('plan stage labels match the M2 table and cannot skip', () => {
+  assert.deepEqual(STAGE_LABELS, {
+    measure: '量房',
+    design: '设计',
+    construct: '施工',
+    accept: '验收',
+  })
+  assert.deepEqual(STAGE_ORDER, ['measure', 'design', 'construct', 'accept'])
+  assert.deepEqual(ROOM_CREATE_OPTIONS, [
+    'living',
+    'bedroom',
+    'kitchen',
+    'bathroom',
+    'study',
+    'balcony',
   ])
 })
