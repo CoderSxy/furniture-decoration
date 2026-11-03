@@ -3,9 +3,11 @@ export type PrivacyBridge = {
   authorizeCamera: () => Promise<void>
 }
 
-export async function ensureCameraPrivacy(bridge: PrivacyBridge): Promise<boolean> {
+export async function ensureCameraPrivacy(bridge: PrivacyBridge, isCancelled: () => boolean = () => false): Promise<boolean> {
   try {
+    if (isCancelled()) return false
     await bridge.requirePrivacyAuthorize()
+    if (isCancelled()) return false
     await bridge.authorizeCamera()
     return true
   } catch {

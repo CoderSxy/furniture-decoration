@@ -123,3 +123,12 @@ test('furnitureToXrCubes converts mm to meters around room center', () => {
   ])
   assert.equal(roomFloorScale(room), '4 1 3')
 })
+
+test('overflowing rows and oversized products remain identifiable as pending', async () => {
+  const { isFurnitureInRoom } = await import('../src/utils/previewLayout.ts')
+  const room = { widthMm: 4000, depthMm: 2100 }
+  const items = layoutFurniture(room, [product('bed1', { w: 1800, d: 2000, h: 100 }), product('bed2', { w: 1800, d: 2000, h: 100 }), product('mirror', { w: 600, d: 40, h: 1800 })])
+  assert.deepEqual(items.filter((item) => !isFurnitureInRoom(item, room)).map((item) => item.productId), ['mirror'])
+  const moved = moveFurniture(items, 'mirror', 0, 0, room)
+  assert.equal(moved.every((item) => isFurnitureInRoom(item, room)), true)
+})

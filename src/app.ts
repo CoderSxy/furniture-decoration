@@ -6,9 +6,15 @@ import { useCatalogStore } from './stores/catalogStore'
 import { useFavoriteStore } from './stores/favoriteStore'
 import { usePlanStore } from './stores/planStore'
 import { useScanStore } from './stores/scanStore'
-import { configureStorage } from './utils/storage'
+import { configureStorage, configureStorageFailureHandler } from './utils/storage'
 
 import './app.scss'
+
+configureStorageFailureHandler(() => {
+  Taro.nextTick(() => {
+    Taro.showToast({ title: '本机保存失败，请到我的页面重试', icon: 'none' })
+  })
+})
 
 configureStorage({
   getItem: (key) => {

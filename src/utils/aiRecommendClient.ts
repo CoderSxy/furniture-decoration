@@ -12,7 +12,7 @@ export type AiRecommendRequestOptions = {
 
 export type FetchAiRecommendationsDeps = {
   getUrl?: () => string | undefined
-  request?: (options: AiRecommendRequestOptions) => Promise<{ data: unknown }>
+  request?: (options: AiRecommendRequestOptions) => Promise<{ data: unknown; statusCode?: number }>
   recommend?: (req: AiRecommendRequest) => Promise<AiRecommendItem[]>
 }
 
@@ -29,8 +29,18 @@ export async function fetchAiRecommendations(
   if (typeof url === 'string' && url.length > 0) {
     const request = deps.request ?? ((options: AiRecommendRequestOptions) => Taro.request(options))
     const res = await request({ url, method: 'POST', data: req })
-    return Array.isArray(res.data) ? (res.data as AiRecommendItem[]) : []
+    if (res.statusCode != null && (res.statusCode < 200 || res.statusCode >= 300)) {
+      throw new Error(`Recommendation HTTP ${res.statusCode}`)
+    }
+    return Array.isArray(res.data) ? res.data.filter(isRecommendItem) : []
   }
   const recommend = deps.recommend ?? recommendProducts
   return recommend(req)
+}
+
+function isRecommendItem(value: unknown): value is AiRecommendItem {
+  if (value == null || typeof value !== 'object') return false
+  const row = value as Record<string, unknown>
+  return typeof row.productId === 'string' && row.productId.trim().length > 0 &&
+    typeof row.reason === 'string' && typeof row.score === 'number' && Number.isFinite(row.score)
 }

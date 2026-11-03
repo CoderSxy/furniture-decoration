@@ -44,3 +44,10 @@ test('memory storage round-trips JSON and recovers from bad payloads', () => {
   configureStorage(createMemoryStorage({ [FAVORITES_STORAGE_KEY]: '' }))
   assert.deepEqual(readJSON(FAVORITES_STORAGE_KEY, [{ keep: true }]), [{ keep: true }])
 })
+
+test('write failure returns a result and never escapes to startup', () => {
+  configureStorage({ getItem: () => null, setItem: () => { throw new Error('quota') } })
+  assert.equal(writeJSON('failed', {}).ok, false)
+  configureStorage(createMemoryStorage())
+  assert.deepEqual(writeJSON('ok', {}), { ok: true })
+})

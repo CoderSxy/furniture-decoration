@@ -1,9 +1,8 @@
 import { Text, View } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ProbeResult } from '../../../utils/scanCapability'
-import { probeScanCapability } from '../../../utils/scanCapability'
-import { ensureCameraPrivacy } from '../../../utils/scanPrivacy'
+import { createScanCancellation, prepareScanSession, releaseScanSession } from '../../../utils/scanCapability'
 import {
   createWeappPrivacyBridge,
   getCreateVkSession,
@@ -19,42 +18,39 @@ export default function ScanPage() {
   const [mode, setMode] = useState<'loading' | 'manual' | 'visionkit'>('loading')
   const [session, setSession] = useState<ProbeResult['session']>(null)
 
+  const cancelRef = useRef<() => void>(() => {})
+
   useEffect(() => {
     if (!planId) return
-    let cancelled = false
+    const controller = createScanCancellation()
     let active: ProbeResult['session'] = null
+    cancelRef.current = () => {
+      controller.abort()
+      releaseScanSession(active)
+      setSession(null)
+      setMode('manual')
+    }
     const run = async () => {
-      const result = await probeScanCapability({
+      const result = await prepareScanSession({
         getSdkVersion: readSdkVersion,
         createVKSession: getCreateVkSession(),
+        privacy: createWeappPrivacyBridge(),
+        signal: controller.signal,
       })
       active = result.session
-      if (cancelled) {
-        active?.destroy()
+      if (controller.signal.aborted) {
+        releaseScanSession(active)
         return
       }
-      if (result.capability !== 'visionkit-v2' || result.session == null) {
-        setMode('manual')
-        return
-      }
-      const allowed = await ensureCameraPrivacy(createWeappPrivacyBridge())
-      if (cancelled) {
-        result.session.destroy()
-        return
-      }
-      if (!allowed) {
-        result.session.destroy()
-        active = null
-        setMode('manual')
-        return
-      }
-      setSession(result.session)
-      setMode('visionkit')
+      setSession(active)
+      setMode(active ? 'visionkit' : 'manual')
     }
-    void run()
+    void run().catch(() => {
+      if (!controller.signal.aborted) setMode('manual')
+    })
     return () => {
-      cancelled = true
-      active?.destroy()
+      controller.abort()
+      releaseScanSession(active)
     }
   }, [planId])
 
@@ -70,6 +66,7 @@ export default function ScanPage() {
     return (
       <View className='page'>
         <Text className='page__duty'>正在检测测量能力</Text>
+        <View onClick={() => cancelRef.current()}><Text>改用手填</Text></View>
       </View>
     )
   }
@@ -81,11 +78,11 @@ export default function ScanPage() {
           planId={planId}
           session={session}
           onSaved={() => {
-            session.destroy()
+            releaseScanSession(session)
             Taro.navigateBack()
           }}
           onFallback={() => {
-            session.destroy()
+            releaseScanSession(session)
             setSession(null)
             setMode('manual')
           }}
