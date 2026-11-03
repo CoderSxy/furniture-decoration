@@ -1,6 +1,7 @@
 import Router from '@koa/router'
 import type { AppDeps } from '../db/ports.ts'
 import { ApiError } from '../errors.ts'
+import { requireAuth } from '../middleware/auth.ts'
 import { hitRateLimit, loginRateKey } from '../services/rateLimit.ts'
 import { SESSION_TTL_SECONDS, createSessionToken, encodeSid, sessionKey } from '../services/session.ts'
 
@@ -40,8 +41,10 @@ export function registerAuth(router: Router): void {
   })
   // 本函数禁止 console.log code / token / openid / AppSecret；需要排障时只记 user.id 与微信 errcode。
 
-  router.post('/api/auth/logout', async (ctx) => {
-    ctx.status = 401
-    ctx.body = { error: { code: 'UNAUTHORIZED', message: '请重新登录' } }
+  router.post('/api/auth/logout', requireAuth, async (ctx) => {
+    const deps = ctx.state.deps as AppDeps
+    await deps.redis.del(sessionKey(ctx.state.sid as string))
+    ctx.status = 204
+    ctx.body = null
   })
 }
