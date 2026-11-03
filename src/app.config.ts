@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/plans/index',
     'pages/budget/index',
     'pages/mine/index',
+    'pages/catalog/detail',
   ],
   subPackages: [
     {

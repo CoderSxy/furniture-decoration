@@ -19,12 +19,6 @@ test('four tabs use spec titles and paths', () => {
 })
 
 test('app config wires tabs and subpackages', () => {
-  assert.deepEqual(appConfig.pages, [
-    'pages/catalog/index',
-    'pages/plans/index',
-    'pages/budget/index',
-    'pages/mine/index',
-  ])
   assert.equal(appConfig.tabBar.list[0].text, '选品')
   assert.equal(appConfig.tabBar.list[1].text, '方案')
   assert.equal(appConfig.tabBar.list[2].text, '预算')
@@ -32,5 +26,17 @@ test('app config wires tabs and subpackages', () => {
   assert.deepEqual(
     appConfig.subPackages.map((item) => item.root),
     ['packageScan', 'packagePreview'],
+  )
+  assert.ok(appConfig.pages.includes('pages/catalog/detail'))
+  assert.deepEqual(appConfig.pages, [
+    'pages/catalog/index',
+    'pages/plans/index',
+    'pages/budget/index',
+    'pages/mine/index',
+    'pages/catalog/detail',
+  ])
+  assert.equal(appConfig.tabBar.list.length, 4)
+  assert.ok(
+    appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/catalog/detail'),
   )
 })
