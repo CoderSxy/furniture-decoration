@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { planDetailUrl, productDetailUrl } from '../src/utils/navigation.ts'
+import { planDetailUrl, productDetailUrl, scanPageUrl } from '../src/utils/navigation.ts'
 
 test('productDetailUrl only passes productId', () => {
   assert.equal(
@@ -14,5 +14,16 @@ test('planDetailUrl only passes planId', () => {
   assert.equal(
     planDetailUrl('plan/weird'),
     '/pages/plans/detail?planId=plan%2Fweird',
+  )
+})
+
+test('scanPageUrl stays in packageScan and only passes planId', () => {
+  assert.equal(
+    scanPageUrl('plan-1'),
+    '/packageScan/pages/scan/index?planId=plan-1',
+  )
+  assert.equal(
+    scanPageUrl('plan/weird'),
+    '/packageScan/pages/scan/index?planId=plan%2Fweird',
   )
 })

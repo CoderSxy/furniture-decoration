@@ -18,7 +18,7 @@ test('four tabs use spec titles and paths', () => {
   )
 })
 
-test('app config wires tabs and subpackages', () => {
+test('app config wires tabs, subpackages, and camera privacy copy', () => {
   assert.equal(appConfig.tabBar.list[0].text, '选品')
   assert.equal(appConfig.tabBar.list[1].text, '方案')
   assert.equal(appConfig.tabBar.list[2].text, '预算')
@@ -27,8 +27,6 @@ test('app config wires tabs and subpackages', () => {
     appConfig.subPackages.map((item) => item.root),
     ['packageScan', 'packagePreview'],
   )
-  assert.ok(appConfig.pages.includes('pages/catalog/detail'))
-  assert.ok(appConfig.pages.includes('pages/plans/detail'))
   assert.deepEqual(appConfig.pages, [
     'pages/catalog/index',
     'pages/plans/index',
@@ -38,10 +36,11 @@ test('app config wires tabs and subpackages', () => {
     'pages/plans/detail',
   ])
   assert.equal(appConfig.tabBar.list.length, 4)
+  assert.ok(appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/plans/detail'))
   assert.ok(
-    appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/catalog/detail'),
+    appConfig.subPackages.some(
+      (item) => item.root === 'packageScan' && item.pages.includes('pages/scan/index'),
+    ),
   )
-  assert.ok(
-    appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/plans/detail'),
-  )
+  assert.equal(appConfig.permission?.['scope.camera']?.desc, '访问你的摄像头')
 })

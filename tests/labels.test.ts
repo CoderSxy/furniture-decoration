@@ -1,4 +1,3 @@
-// tests/labels.test.ts
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
@@ -11,6 +10,7 @@ import {
   ROOM_CREATE_OPTIONS,
   ROOM_FILTER_OPTIONS,
   ROOM_LABELS,
+  SCAN_SOURCE_LABELS,
   STAGE_LABELS,
   STAGE_ORDER,
   STYLE_FILTER_OPTIONS,
@@ -109,4 +109,11 @@ test('budget category labels match the M3 table and keep a stable order', () => 
     other: '其他',
   })
   assert.deepEqual(BUDGET_CATEGORY_ORDER, ['furniture', 'material', 'labor', 'other'])
+})
+
+test('scan source labels match M4 copy', () => {
+  assert.deepEqual(SCAN_SOURCE_LABELS, {
+    'visionkit-v2': 'VisionKit 测量',
+    manual: '手动填写',
+  })
 })

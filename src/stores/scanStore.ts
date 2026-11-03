@@ -1,4 +1,3 @@
-// src/stores/scanStore.ts
 import { create } from 'zustand'
 import { SCANS_STORAGE_KEY } from '../constants/storageKeys'
 import type { RoomScan } from '../types/domain'
@@ -39,19 +38,37 @@ export function parsePersistedScans(input: unknown): Record<string, RoomScan> {
   return result
 }
 
+function persist(scans: Record<string, RoomScan>): void {
+  writeJSON(SCANS_STORAGE_KEY, scans)
+}
+
 export type ScanState = {
   scans: Record<string, RoomScan>
   hydrate: () => void
   reset: () => void
+  upsert: (scan: RoomScan) => void
 }
 
-export const useScanStore = create<ScanState>((set) => ({
+export const useScanStore = create<ScanState>((set, get) => ({
   scans: {},
   hydrate: () => {
     set({ scans: parsePersistedScans(readJSON<unknown>(SCANS_STORAGE_KEY, null)) })
   },
   reset: () => {
-    writeJSON(SCANS_STORAGE_KEY, {})
+    persist({})
     set({ scans: {} })
   },
+  upsert: (scan) => {
+    const scans = { ...get().scans, [scan.planId]: scan }
+    persist(scans)
+    set({ scans })
+  },
 }))
+
+export function selectScanByPlanId(state: ScanState, planId: string): RoomScan | undefined {
+  return state.scans[planId]
+}
+
+export function getByPlanId(planId: string): RoomScan | undefined {
+  return selectScanByPlanId(useScanStore.getState(), planId)
+}

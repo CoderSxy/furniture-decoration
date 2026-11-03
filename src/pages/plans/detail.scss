@@ -57,6 +57,36 @@
   color: #ffffff;
 }
 
+.plan-scan-entry {
+  margin: 0 0 24px;
+  padding: 20px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.plan-scan-entry__text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.plan-scan {
+  margin-bottom: 24px;
+}
+
+.plan-scan__size {
+  display: block;
+  font-size: 28px;
+  color: var(--color-text);
+}
+
+.plan-scan__source {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--color-text-muted);
+}
+
 .plan-section {
   display: block;
   margin: 8px 0 16px;

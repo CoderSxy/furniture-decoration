@@ -1,13 +1,14 @@
-// src/pages/plans/detail.tsx
 import { Text, View } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { ProductCard } from '../../components/product-card'
-import { ROOM_LABELS, STAGE_LABELS, STAGE_ORDER } from '../../constants/labels'
+import { RoomFloorplan } from '../../components/room-floorplan'
+import { ROOM_LABELS, SCAN_SOURCE_LABELS, STAGE_LABELS, STAGE_ORDER } from '../../constants/labels'
 import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { selectPlanById, usePlanStore } from '../../stores/planStore'
+import { selectScanByPlanId, useScanStore } from '../../stores/scanStore'
 import type { Product } from '../../types/domain'
-import { productDetailUrl } from '../../utils/navigation'
+import { productDetailUrl, scanPageUrl } from '../../utils/navigation'
 import { advanceBlockedReason, canAdvanceStage, formatPlanArea } from '../../utils/plans'
 import './detail.scss'
 
@@ -15,6 +16,7 @@ export default function PlanDetailPage() {
   const router = useRouter()
   const planId = router.params.planId ?? ''
   const plan = usePlanStore((state) => selectPlanById(state, planId))
+  const scan = useScanStore((state) => selectScanByPlanId(state, planId))
   const removeProductFromPlan = usePlanStore((state) => state.removeProductFromPlan)
   const advanceStage = usePlanStore((state) => state.advanceStage)
   const products = useCatalogStore((state) => state.products)
@@ -63,6 +65,26 @@ export default function PlanDetailPage() {
           )
         })}
       </View>
+      {plan.stage === 'measure' ? (
+        <View
+          className='plan-scan-entry'
+          onClick={() => {
+            Taro.navigateTo({ url: scanPageUrl(plan.id) })
+          }}
+        >
+          <Text className='plan-scan-entry__text'>采集房型</Text>
+        </View>
+      ) : null}
+      {scan ? (
+        <View className='plan-scan'>
+          <Text className='plan-section'>房型尺寸</Text>
+          <Text className='plan-scan__size'>
+            长 {scan.widthMm} × 宽 {scan.depthMm} × 高 {scan.heightMm} mm
+          </Text>
+          <Text className='plan-scan__source'>{SCAN_SOURCE_LABELS[scan.source]}</Text>
+          <RoomFloorplan widthMm={scan.widthMm} depthMm={scan.depthMm} />
+        </View>
+      ) : null}
       <Text className='plan-section'>已选商品</Text>
       {planProducts.length === 0 ? (
         <View

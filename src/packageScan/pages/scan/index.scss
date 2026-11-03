@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding: 32px 24px;
+  padding: 24px 24px 48px;
   background: var(--color-surface);
   box-sizing: border-box;
 }
@@ -20,9 +20,113 @@
   line-height: 1.5;
 }
 
-.page__meta {
+.manual__title {
   display: block;
-  margin-top: 24px;
-  font-size: 24px;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.manual__lead {
+  display: block;
+  margin: 16px 0 24px;
+  font-size: 26px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.manual__input {
+  height: 72px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 28px;
+}
+
+.manual__photos {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.manual__thumb {
+  width: 160px;
+  height: 160px;
+  margin-right: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: var(--color-card);
+}
+
+.manual__secondary {
+  padding: 16px 0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.manual__secondary-text {
+  font-size: 26px;
   color: var(--color-primary);
+}
+
+.manual__submit {
+  padding: 20px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.manual__submit-text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.page--measure {
+  padding: 0 0 48px;
+}
+
+.scan-stage {
+  position: relative;
+  width: 100%;
+  height: 720px;
+  background: var(--color-text);
+}
+
+.scan-camera,
+.scan-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scan-hit {
+  z-index: 1;
+}
+
+.measure__hint {
+  display: block;
+  margin: 16px 24px 8px;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.measure__meta {
+  display: block;
+  margin: 0 24px 16px;
+  font-size: 24px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.measure .manual__input,
+.measure .manual__submit,
+.measure .manual__secondary {
+  margin-left: 24px;
+  margin-right: 24px;
 }

@@ -1,8 +1,12 @@
-// tests/scan-store.test.ts
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it } from 'node:test'
 import { SCANS_STORAGE_KEY } from '../src/constants/storageKeys.ts'
-import { parsePersistedScans, useScanStore } from '../src/stores/scanStore.ts'
+import {
+  getByPlanId,
+  parsePersistedScans,
+  selectScanByPlanId,
+  useScanStore,
+} from '../src/stores/scanStore.ts'
 import type { RoomScan } from '../src/types/domain.ts'
 import { configureStorage, createMemoryStorage, readJSON } from '../src/utils/storage.ts'
 
@@ -44,5 +48,37 @@ describe('scanStore', { concurrency: false }, () => {
     useScanStore.getState().reset()
     assert.deepEqual(useScanStore.getState().scans, {})
     assert.deepEqual(readJSON(SCANS_STORAGE_KEY, { keep: true }), {})
+  })
+
+  it('upsert overwrites the same planId and keeps other plans', () => {
+    useScanStore.getState().upsert(validScan)
+    assert.deepEqual(getByPlanId('plan-living'), validScan)
+    assert.deepEqual(selectScanByPlanId(useScanStore.getState(), 'plan-living'), validScan)
+    assert.equal(selectScanByPlanId(useScanStore.getState(), 'missing'), undefined)
+
+    const other: RoomScan = {
+      ...validScan,
+      planId: 'plan-bed',
+      source: 'visionkit-v2',
+      photoPaths: [],
+      widthMm: 3600,
+    }
+    useScanStore.getState().upsert(other)
+
+    const replaced: RoomScan = {
+      ...validScan,
+      widthMm: 4100,
+      capturedAt: '2026-11-03T09:00:00.000Z',
+    }
+    useScanStore.getState().upsert(replaced)
+
+    assert.deepEqual(useScanStore.getState().scans, {
+      'plan-living': replaced,
+      'plan-bed': other,
+    })
+    assert.deepEqual(readJSON(SCANS_STORAGE_KEY, {}), {
+      'plan-living': replaced,
+      'plan-bed': other,
+    })
   })
 })
