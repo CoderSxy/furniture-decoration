@@ -1,3 +1,4 @@
+// src/stores/favoriteStore.ts
 import { create } from 'zustand'
 import { FAVORITES_STORAGE_KEY } from '../constants/storageKeys'
 import type { FavoriteRecord } from '../types/domain'
@@ -22,6 +23,7 @@ export type FavoriteState = {
   hydrate: () => void
   toggleFavorite: (productId: string) => void
   isFavorite: (productId: string) => boolean
+  reset: () => void
 }
 
 export const useFavoriteStore = create<FavoriteState>((set, get) => ({
@@ -39,4 +41,8 @@ export const useFavoriteStore = create<FavoriteState>((set, get) => ({
     set({ items })
   },
   isFavorite: (productId: string) => get().items.some((item) => item.productId === productId),
+  reset: () => {
+    writeJSON(FAVORITES_STORAGE_KEY, [])
+    set({ items: [] })
+  },
 }))

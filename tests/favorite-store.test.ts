@@ -54,4 +54,11 @@ describe('favoriteStore', { concurrency: false }, () => {
       { productId: 'p-bed-modern-03', savedAt: '2026-11-03T08:00:00.000Z' },
     ])
   })
+
+  it('reset clears favorites memory and fd:favorites', () => {
+    useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
+    useFavoriteStore.getState().reset()
+    assert.deepEqual(useFavoriteStore.getState().items, [])
+    assert.deepEqual(readJSON(FAVORITES_STORAGE_KEY, ['x']), [])
+  })
 })
