@@ -28,15 +28,20 @@ test('app config wires tabs and subpackages', () => {
     ['packageScan', 'packagePreview'],
   )
   assert.ok(appConfig.pages.includes('pages/catalog/detail'))
+  assert.ok(appConfig.pages.includes('pages/plans/detail'))
   assert.deepEqual(appConfig.pages, [
     'pages/catalog/index',
     'pages/plans/index',
     'pages/budget/index',
     'pages/mine/index',
     'pages/catalog/detail',
+    'pages/plans/detail',
   ])
   assert.equal(appConfig.tabBar.list.length, 4)
   assert.ok(
     appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/catalog/detail'),
+  )
+  assert.ok(
+    appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/plans/detail'),
   )
 })
