@@ -9,7 +9,7 @@
 - 微信开发者工具（稳定版）
 - 预览 3D 需要基础库 `>= 2.32.0`。开发者工具或真机若不支持 xr-frame，页面隐藏 2D/3D 切换并显示「当前基础库不支持 3D 预览」，2D 仍可用。
 
-本机自备 AppID。把真实 `appid` 写在 `project.private.config.json`（已 gitignore），仓库内 `project.config.json` 只保留占位 `touristappid`。
+`project.config.json` 已写入 Nero 的 AppID `wx678305a130615b19`。`project.private.config.json` 仍 gitignore，只放本机覆盖，不要提交 AppSecret。个人主体提审准备（简介、类目、隐私指引、体验版上传）见 [docs/weapp-publish-checklist.md](docs/weapp-publish-checklist.md)。备案 / 提审 / 正式发布由 Nero 本人操作。
 
 可选：在未跟踪的 `.env` 里设置 `TARO_APP_AI_RECOMMEND_URL` 才会改走 `Taro.request`。不要把模型 Key、Authorization 或真实 URL 写进仓库。未设置时使用 `src/mocks/aiRecommend.ts`。
 
@@ -28,7 +28,7 @@ AI / 预览在分包 `packagePreview`。**xr-frame 热更新不可用**。请用
 
 1. 目录选本仓库根目录。
 2. 确认 `project.config.json` 的 `miniprogramRoot` 为 `dist/`（或 `./dist`）。
-3. AppID 用测试号或自己的，不要提交审核。
+3. 确认 AppID 为 `wx678305a130615b19`。上传体验版与提审文案见清单；不要把体验版当正式发布。
 4. 打开模拟器，底部四个 Tab 应为「选品 / 方案 / 预算 / 我的」。
 5. 封面使用 `picsum.photos` 占位图：详情里勾选「不校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书」，否则封面可能空白。
 
@@ -58,14 +58,14 @@ pnpm build:weapp
 - 方案详情且阶段为「量房」时显示「采集房型」。
 - VisionKit v2 或手填降级写入 `fd:scans`。扫描结果可被 M5 预览使用。
 
-## 隐私指引（实现期配置，本 MVP 不提审）
+## 隐私指引
 
-在微信公众平台 → 用户隐私保护指引声明（不要把密钥或真实 AppID 写进仓库）：
+可粘贴的完整文案、类目建议与提审补充说明见 [docs/weapp-publish-checklist.md](docs/weapp-publish-checklist.md)。公众平台填写时（不要把 AppSecret 写进仓库）：
 
 1. **访问你的摄像头**：用于量房时识别地面并测量长宽。
 2. **选中的照片或视频信息**：用于降级路径选择最多 3 张参考图，仅保存在本机，不会上传。
 
-代码在调用相机前走 `requirePrivacyAuthorize` 与 `scope.camera`。未经 Nero 确认不提交审核。
+代码在调用相机前走 `requirePrivacyAuthorize` 与 `scope.camera`。备案 / 提审 / 发布由 Nero 本人操作。
 
 ## 约束
 
