@@ -1,4 +1,4 @@
-import Redis from 'ioredis'
+import { Redis } from 'ioredis'
 import type { Env } from '../env.ts'
 import type { RedisPort } from './ports.ts'
 
