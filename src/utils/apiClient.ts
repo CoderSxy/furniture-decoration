@@ -13,8 +13,9 @@ export function getApiBaseUrl(): string | undefined {
 }
 
 export type ApiRequestOptions = {
-  method: 'GET' | 'POST' | 'PUT'
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   data?: unknown
+  isActive?: () => boolean
 }
 
 export class ApiClientError extends Error {
@@ -32,7 +33,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions): P
   if (!base) {
     throw new Error(LOGIN_MISSING_BASE_TEXT)
   }
-  const token = useSyncStore.getState().token
+  const { token, generation } = useSyncStore.getState()
   const header: Record<string, string> = {}
   if (token) header.Authorization = `Bearer ${token}`
   const res = await Taro.request({
@@ -41,9 +42,12 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions): P
     data: options.data,
     header,
   })
-  if (res.statusCode === 401) {
+  if (options.isActive && !options.isActive()) throw new ApiClientError('STALE_SESSION', '请求已失效')
+  if (res.statusCode === 401 && path !== '/api/auth/login') {
+    if (useSyncStore.getState().generation === generation) {
     useSyncStore.getState().clearSession()
     Taro.reLaunch({ url: loginPageUrl() })
+    }
     throw new ApiClientError('UNAUTHORIZED', '请重新登录')
   }
   if (res.statusCode != null && res.statusCode >= 400) {

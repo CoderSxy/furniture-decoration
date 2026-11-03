@@ -1,3 +1,4 @@
+import { claimBusinessData, migrateBusinessOwner } from '../utils/businessData'
 import { create } from 'zustand'
 import { AUTH_STORAGE_KEY } from '../constants/storageKeys'
 import type { AuthRecord } from '../types/sync'
@@ -21,6 +22,8 @@ export type SyncState = {
   token: string | null
   userId: string | null
   loggedInAt: string | null
+  generation: number
+  verified: boolean
   pendingRetry: boolean
   hydrate: () => void
   setSession: (input: { token: string; userId: string }) => void
@@ -28,25 +31,29 @@ export type SyncState = {
   setPendingRetry: (flag: boolean) => void
 }
 
-export const useSyncStore = create<SyncState>((set) => ({
+export const useSyncStore = create<SyncState>((set, get) => ({
   token: null,
   userId: null,
   loggedInAt: null,
+  generation: 0,
+  verified: false,
   pendingRetry: false,
   hydrate: () => {
     const parsed = parseAuth(readJSON<unknown>(AUTH_STORAGE_KEY, null))
-    set({ ...parsed })
+    migrateBusinessOwner(parsed.userId)
+    set({ ...parsed, verified: false, generation: get().generation + 1 })
   },
   setSession: ({ token, userId }) => {
+    claimBusinessData(userId)
     const loggedInAt = new Date().toISOString()
     const record: AuthRecord = { token, userId, loggedInAt }
     writeJSON(AUTH_STORAGE_KEY, record)
-    set(record)
+    set({ ...record, verified: true, generation: get().generation + 1 })
   },
   clearSession: () => {
     const record: AuthRecord = { token: null, userId: null, loggedInAt: null }
     writeJSON(AUTH_STORAGE_KEY, record)
-    set(record)
+    set({ ...record, verified: false, generation: get().generation + 1 })
   },
   setPendingRetry: (flag) => {
     set({ pendingRetry: flag })

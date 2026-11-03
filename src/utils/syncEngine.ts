@@ -9,10 +9,10 @@ import { useSyncStore } from '../stores/syncStore'
 import type { Budget, FavoriteRecord, Plan, RoomScan } from '../types/domain'
 import type { SyncItem } from '../types/sync'
 import { apiRequest, getApiBaseUrl } from './apiClient'
-import { isLoggedIn } from './authGate'
+import { resetBusinessData } from './businessData'
 import { mergeByUpdatedAt } from './syncMerge'
 import { registerSchedulePush } from './syncNotify'
-import { clearTombstones, dropAckedTombstones, listTombstones } from './tombstones'
+import { dropAckedTombstones, listTombstones } from './tombstones'
 
 const EPOCH = '1970-01-01T00:00:00.000Z'
 const DEBOUNCE_MS = 800
@@ -23,6 +23,8 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let inFlight = false
 let queued = false
 let lastPullAt = 0
+let clearing = false
+const pendingPuts = new Set<Promise<unknown>>()
 
 function itemKey(kind: string, itemId: string): string {
   return `${kind}:${itemId}`
@@ -101,6 +103,7 @@ export function collectSyncItems(): SyncItem[] {
 
 function reconcilePreference(): void {
   const { plans, activePlanId } = usePlanStore.getState()
+  if (activePlanId == null && plans.length === 0) return
   if (activePlanId != null && plans.some((plan) => plan.id === activePlanId)) return
   const newest = [...plans].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]
   usePlanStore.getState().replaceAll({
@@ -119,8 +122,11 @@ export function applySyncItems(items: SyncItem[]): void {
   let activePlanId: string | null = usePlanStore.getState().activePlanId
   let activePlanUpdatedAt = usePlanStore.getState().activePlanUpdatedAt
 
-  for (const item of items) {
+  for (let item of items) {
     if (item.deleted) continue
+    if (item.payload != null && typeof item.payload === 'object') {
+      item = { ...item, payload: { ...item.payload, updatedAt: item.updatedAt } }
+    }
     if (item.kind === 'favorite' && item.payload != null && typeof item.payload === 'object') {
       favorites.push(item.payload as FavoriteRecord)
     } else if (item.kind === 'plan' && item.payload != null && typeof item.payload === 'object') {
@@ -146,107 +152,121 @@ export function applySyncItems(items: SyncItem[]): void {
   useBudgetStore.getState().replaceAll(budgets)
   useScanStore.getState().replaceAll(scans)
   useAiPreviewStore.getState().replaceAll(previews)
-  dropAckedTombstones(items)
   reconcilePreference()
 }
 
-function resetBusinessData(): void {
-  useFavoriteStore.getState().reset()
-  usePlanStore.getState().reset()
-  useBudgetStore.getState().reset()
-  useScanStore.getState().reset()
-  useAiPreviewStore.getState().reset()
-  clearTombstones()
+type SyncContext = { generation: number; cancelled: boolean }
+const context = (): SyncContext => ({ generation: useSyncStore.getState().generation, cancelled: false })
+const current = (ctx: SyncContext): boolean => !clearing && !ctx.cancelled && ctx.generation === useSyncStore.getState().generation && !!useSyncStore.getState().token
+const canSync = (): boolean => !clearing && useSyncStore.getState().verified && !!useSyncStore.getState().token && !!getApiBaseUrl()
+
+// JSON copy is necessary: stores may replace records while the request is pending.
+const snapshot = (): SyncItem[] => JSON.parse(JSON.stringify(collectSyncItems()))
+const keyOf = (item: SyncItem): string => itemKey(item.kind, item.itemId)
+
+function applyResponse(remote: SyncItem[], sent: SyncItem[]): boolean {
+  const before = new Map(sent.map(item => [keyOf(item), JSON.stringify(item)]))
+  const changes = snapshot().filter(item => before.get(keyOf(item)) !== JSON.stringify(item))
+  // Only actual server responses acknowledge deletes. A changed local delete survives.
+  dropAckedTombstones(remote.filter(item => !changes.some(change => keyOf(change) === keyOf(item))), sent)
+  const result = new Map(remote.map(item => [keyOf(item), item]))
+  for (const item of changes) result.set(keyOf(item), item)
+  applySyncItems([...result.values()])
+  return changes.length > 0
 }
 
-async function pushNow(): Promise<void> {
-  if (!isLoggedIn() || !getApiBaseUrl()) return
-  const snapshot = await apiRequest<{ serverTime: string; items: SyncItem[] }>('/api/sync', {
-    method: 'PUT',
-    data: {
-      clientTime: new Date().toISOString(),
-      items: collectSyncItems(),
-    },
+async function pushNow(ctx: SyncContext): Promise<void> {
+  if (!current(ctx) || !canSync()) return
+  const sent = snapshot()
+  const request = apiRequest<{ serverTime: string; items: SyncItem[] }>('/api/sync', {
+    isActive: () => current(ctx), method: 'PUT', data: { clientTime: new Date().toISOString(), items: sent },
   })
-  applySyncItems(snapshot.items)
+  pendingPuts.add(request)
+  let result: { serverTime: string; items: SyncItem[] }
+  try { result = await request } finally { pendingPuts.delete(request) }
+  if (!current(ctx)) return
+  if (applyResponse(result.items, sent)) schedulePush()
 }
+
+// Session changes invalidate both timers and responses, including old 401s.
+useSyncStore.subscribe((state, previous) => {
+  if (state.generation === previous.generation) return
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = null
+  queued = false
+  inFlight = false
+  lastPullAt = 0
+})
 
 export function schedulePush(): void {
-  if (!isLoggedIn() || !getApiBaseUrl()) return
+  if (!canSync()) return
+  const ctx = context()
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     debounceTimer = null
-    void (async () => {
-      if (inFlight) {
-        queued = true
-        return
-      }
-      inFlight = true
-      try {
-        await pushNow()
-      } catch {
-        useSyncStore.getState().setPendingRetry(true)
-      } finally {
-        inFlight = false
-        if (queued) {
-          queued = false
-          schedulePush()
-        }
-      }
-    })()
+    if (!current(ctx)) return
+    if (inFlight) { queued = true; return }
+    inFlight = true
+    void pushNow(ctx).catch(() => {
+      if (current(ctx)) useSyncStore.getState().setPendingRetry(true)
+    }).finally(() => {
+      if (!current(ctx)) return
+      inFlight = false
+      if (queued) { queued = false; schedulePush() }
+    })
   }, DEBOUNCE_MS)
 }
 
 registerSchedulePush(schedulePush)
 
+async function pullAndPush(ctx: SyncContext, alwaysPush: boolean): Promise<void> {
+  const remote = await apiRequest<{ serverTime: string; items: SyncItem[] }>('/api/sync', { method: 'GET', isActive: () => current(ctx) })
+  if (!current(ctx)) return
+  const merged = mergeByUpdatedAt(collectSyncItems(), remote.items)
+  dropAckedTombstones(remote.items)
+  applySyncItems(merged)
+  if (alwaysPush || JSON.stringify(collectSyncItems()) !== JSON.stringify(remote.items)) await pushNow(ctx)
+}
+
 export async function pullIfDue(now = Date.now()): Promise<void> {
-  if (!isLoggedIn() || !getApiBaseUrl()) return
-  if (now - lastPullAt < PULL_GAP_MS) return
+  if (!canSync() || now - lastPullAt < PULL_GAP_MS) return
   lastPullAt = now
+  const ctx = context()
   try {
-    const remote = await apiRequest<{ serverTime: string; items: SyncItem[] }>('/api/sync', {
-      method: 'GET',
-    })
-    const merged = mergeByUpdatedAt(collectSyncItems(), remote.items)
-    applySyncItems(merged)
-    const local = collectSyncItems()
-    const needsPut = local.some((item) => {
-      const remoteItem = remote.items.find((row) => row.kind === item.kind && row.itemId === item.itemId)
-      if (remoteItem == null) return true
-      return new Date(item.updatedAt).getTime() > new Date(remoteItem.updatedAt).getTime()
-    }) || listTombstones().length > 0
-    if (needsPut) await pushNow()
-    useSyncStore.getState().setPendingRetry(false)
+    await pullAndPush(ctx, false)
+    if (current(ctx)) useSyncStore.getState().setPendingRetry(false)
   } catch {
+    if (!current(ctx)) return
     useSyncStore.getState().setPendingRetry(true)
     Taro.showToast({ title: SYNC_FAILED_TEXT, icon: 'none' })
   }
-}
-
-async function loginSyncWork(): Promise<void> {
-  const remote = await apiRequest<{ serverTime: string; items: SyncItem[] }>('/api/sync', {
-    method: 'GET',
-  })
-  const merged = mergeByUpdatedAt(collectSyncItems(), remote.items)
-  applySyncItems(merged)
-  await pushNow()
 }
 
 export async function runLoginSync(previousUserId?: string | null): Promise<void> {
-  const userId = useSyncStore.getState().userId
-  if (previousUserId != null && previousUserId !== userId) {
-    resetBusinessData()
-  }
+  if (previousUserId != null && previousUserId !== useSyncStore.getState().userId) resetBusinessData()
+  const ctx = context()
+  let timeout: ReturnType<typeof setTimeout> | undefined
   try {
     await Promise.race([
-      loginSyncWork(),
+      pullAndPush(ctx, true),
       new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('timeout')), LOGIN_SYNC_TIMEOUT_MS)
+        timeout = setTimeout(() => { ctx.cancelled = true; reject(new Error('timeout')) }, LOGIN_SYNC_TIMEOUT_MS)
       }),
     ])
-    useSyncStore.getState().setPendingRetry(false)
+    if (current(ctx)) useSyncStore.getState().setPendingRetry(false)
   } catch {
+    if (ctx.generation !== useSyncStore.getState().generation) return
     Taro.showToast({ title: SYNC_FAILED_TEXT, icon: 'none' })
     useSyncStore.getState().setPendingRetry(true)
+  } finally {
+    if (timeout) clearTimeout(timeout)
   }
+}
+
+export async function pauseSyncForClear(): Promise<() => void> {
+  if (clearing) throw new Error('正在清除')
+  clearing = true
+  useSyncStore.setState(state => ({ generation: state.generation + 1 }))
+  await Promise.allSettled([...pendingPuts])
+  return () => { clearing = false }
 }

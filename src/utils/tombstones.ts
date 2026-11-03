@@ -36,12 +36,13 @@ export function recordTombstone(kind: SyncKind, itemId: string, updatedAt: strin
   persist(next)
 }
 
-export function dropAckedTombstones(serverItems: SyncItem[]): void {
+export function dropAckedTombstones(serverItems: SyncItem[], sentItems: SyncItem[] = []): void {
   const remaining = listTombstones().filter((row) => {
     const ack = serverItems.find(
       (item) => item.kind === row.kind && item.itemId === row.itemId && item.deleted,
     )
     if (ack == null) return true
+    if (sentItems.some(item => item.deleted && item.kind === row.kind && item.itemId === row.itemId && item.updatedAt === row.updatedAt)) return false
     return new Date(ack.updatedAt).getTime() < new Date(row.updatedAt).getTime()
   })
   persist(remaining)
