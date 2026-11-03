@@ -1,28 +1,113 @@
 .page {
   min-height: 100vh;
-  padding: 32px 24px;
+  padding: 24px;
   background: var(--color-surface);
   box-sizing: border-box;
 }
 
-.page__title {
+.plans-toolbar {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.plans-toolbar__text {
+  color: #ffffff;
+  font-size: 30px;
+}
+
+.plans-form {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.plans-form__input {
+  height: 72px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 28px;
+}
+
+.plans-form__legend {
   display: block;
-  font-size: 40px;
-  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 24px;
+  color: var(--color-text-muted);
+}
+
+.plans-form__rooms {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.plans-form__chip {
+  margin-right: 12px;
+  margin-bottom: 12px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.plans-form__chip--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.plans-form__chip-text {
+  font-size: 24px;
   color: var(--color-text);
 }
 
-.page__duty {
+.plans-form__chip-text--active {
+  color: #ffffff;
+}
+
+.plans-form__submit {
+  padding: 16px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.plans-form__submit-text {
+  color: #ffffff;
+  font-size: 28px;
+}
+
+.plans-form__cancel {
+  padding: 16px 0 0;
+  text-align: center;
+}
+
+.plans-form__cancel-text {
+  font-size: 26px;
+  color: var(--color-text-muted);
+}
+
+.plans-empty {
+  padding: 48px 8px;
+}
+
+.plans-empty__text {
+  display: block;
+  font-size: 28px;
+  color: var(--color-text-muted);
+}
+
+.plans-empty__action {
   display: block;
   margin-top: 16px;
   font-size: 28px;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-}
-
-.page__meta {
-  display: block;
-  margin-top: 24px;
-  font-size: 24px;
   color: var(--color-primary);
 }
