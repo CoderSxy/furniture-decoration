@@ -20,6 +20,9 @@ export default defineConfig<'vite'>(async (merge) => {
     plugins: [
       "@tarojs/plugin-generator"
     ],
+    env: {
+      TARO_APP_AI_RECOMMEND_URL: JSON.stringify(process.env.TARO_APP_AI_RECOMMEND_URL || ''),
+    },
     defineConstants: {
     },
     copy: {
