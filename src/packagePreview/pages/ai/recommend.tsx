@@ -9,10 +9,12 @@ import { selectPlanById, usePlanStore } from '../../../stores/planStore'
 import type { AiRecommendItem } from '../../../types/aiRecommend'
 import { fetchAiRecommendations, filterRecommendations } from '../../../utils/aiRecommendClient'
 import { buildAiRecommendRequest } from '../../../utils/aiRecommendRequest'
+import { useAuthGate } from '../../../hooks/useAuthGate'
 import { previewPageUrl, productDetailUrl } from '../../../utils/navigation'
 import './recommend.scss'
 
 export default function AiRecommendPage() {
+  useAuthGate()
   const router = useRouter()
   const planId = router.params.planId ?? ''
   const plan = usePlanStore((state) => selectPlanById(state, planId))

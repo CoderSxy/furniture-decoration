@@ -8,11 +8,13 @@ import {
   getCreateVkSession,
   readSdkVersion,
 } from '../../../utils/weappScanBridge'
+import { useAuthGate } from '../../../hooks/useAuthGate'
 import { ManualForm } from './manual-form'
 import { MeasureView } from './measure-view'
 import './index.scss'
 
 export default function ScanPage() {
+  useAuthGate()
   const router = useRouter()
   const planId = router.params.planId ?? ''
   const [mode, setMode] = useState<'loading' | 'manual' | 'visionkit'>('loading')

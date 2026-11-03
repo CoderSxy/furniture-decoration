@@ -6,11 +6,13 @@ import { useCatalogStore } from '../../stores/catalogStore'
 import { useFavoriteStore } from '../../stores/favoriteStore'
 import type { Product } from '../../types/domain'
 import { productDetailUrl } from '../../utils/navigation'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { retryFailedStorageWrites } from '../../utils/storage'
 import { resetMockData } from '../../utils/resetMock'
 import './index.scss'
 
 export default function MinePage() {
+  useAuthGate()
   const items = useFavoriteStore((state) => state.items)
   const products = useCatalogStore((state) => state.products)
   const favoriteProducts: Product[] = [...items]

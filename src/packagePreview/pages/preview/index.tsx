@@ -13,12 +13,14 @@ import {
   resolvePreviewRoom,
   roomFloorScale,
 } from '../../../utils/previewLayout'
+import { useAuthGate } from '../../../hooks/useAuthGate'
 import { readXrFrameSupport } from '../../../utils/xrCapability'
 import './index.scss'
 
 type PreviewMode = '2d' | '3d'
 
 export default function PreviewPage() {
+  useAuthGate()
   const router = useRouter()
   const planId = router.params.planId ?? ''
   const plan = usePlanStore((state) => selectPlanById(state, planId))

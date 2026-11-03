@@ -6,6 +6,7 @@ import { useCatalogStore } from './stores/catalogStore'
 import { useFavoriteStore } from './stores/favoriteStore'
 import { usePlanStore } from './stores/planStore'
 import { useScanStore } from './stores/scanStore'
+import { useSyncStore } from './stores/syncStore'
 import { configureStorage, configureStorageFailureHandler } from './utils/storage'
 
 import './app.scss'
@@ -35,6 +36,7 @@ useFavoriteStore.getState().hydrate()
 usePlanStore.getState().hydrate()
 useBudgetStore.getState().hydrate()
 useScanStore.getState().hydrate()
+useSyncStore.getState().hydrate()
 useBudgetStore.getState().ensureForPlans(
   usePlanStore.getState().plans,
   useCatalogStore.getState().products,

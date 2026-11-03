@@ -119,3 +119,11 @@ export const PRICE_RANGE_FILTER_OPTIONS = [
 export const EMPTY_AI_RECOMMEND_TEXT = '暂无推荐，请先放宽预算或去选品'
 
 export const XR_FRAME_UNSUPPORTED_TEXT = '当前基础库不支持 3D 预览'
+
+export const LOGIN_BUTTON_TEXT = '微信登录'
+export const LOGIN_SUBTITLE = '使用微信身份同步收藏、方案、预算等到云端。不获取手机号。'
+export const LOGIN_PRIVACY_DENIED_TEXT = '需要同意隐私指引才能同步'
+export const LOGIN_FAILED_TEXT = '登录失败，请重试'
+export const LOGIN_CODE_EXPIRED_TEXT = '登录已过期，请再点一次'
+export const SYNC_FAILED_TEXT = '同步失败，将在网络恢复后重试'
+export const LOGIN_MISSING_BASE_TEXT = '未配置服务地址，无法登录'

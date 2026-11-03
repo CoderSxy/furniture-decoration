@@ -8,11 +8,13 @@ import { useCatalogStore } from '../../stores/catalogStore'
 import { selectPlanById, usePlanStore } from '../../stores/planStore'
 import { selectScanByPlanId, useScanStore } from '../../stores/scanStore'
 import type { Product } from '../../types/domain'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { aiRecommendUrl, previewPageUrl, productDetailUrl, scanPageUrl } from '../../utils/navigation'
 import { advanceBlockedReason, canAdvanceStage, formatPlanArea } from '../../utils/plans'
 import './detail.scss'
 
 export default function PlanDetailPage() {
+  useAuthGate()
   const router = useRouter()
   const planId = router.params.planId ?? ''
   const plan = usePlanStore((state) => selectPlanById(state, planId))
