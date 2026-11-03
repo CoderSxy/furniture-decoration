@@ -24,6 +24,8 @@ export type MysqlPort = {
   listSyncItems(userId: string): Promise<SyncItemRow[]>
   getSyncItem(userId: string, kind: string, itemId: string): Promise<SyncItemRow | null>
   upsertSyncItem(row: SyncItemRow): Promise<void>
+  lockSyncUser(userId: string): Promise<void>
+  clearSyncItems(userId: string): Promise<void>
   withTransaction<T>(fn: (tx: MysqlPort) => Promise<T>): Promise<T>
 }
 

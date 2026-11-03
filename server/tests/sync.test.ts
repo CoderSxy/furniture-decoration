@@ -194,3 +194,60 @@ test('PUT body larger than 512 KiB is PAYLOAD_TOO_LARGE', async () => {
     await close()
   }
 })
+
+test('session validation requires a live Bearer', async () => {
+  const { url, close, token } = await start()
+  try {
+    const valid = await fetch(`${url}/api/auth/session`, { headers: { authorization: `Bearer ${token}` } })
+    assert.equal(valid.status, 200)
+    assert.ok((await valid.json()).user.id)
+    await fetch(`${url}/api/auth/logout`, { method: 'POST', headers: { authorization: `Bearer ${token}` } })
+    assert.equal((await fetch(`${url}/api/auth/session`, { headers: { authorization: `Bearer ${token}` } })).status, 401)
+  } finally { await close() }
+})
+
+test('full clear removes unseen cloud records for only the authenticated user', async () => {
+  const { url, close, token, deps, user } = await start()
+  try {
+    const row = { kind: 'favorite' as const, item_id: 'unseen', payload: { productId: 'unseen' }, updated_at: deps.clock(), created_at: deps.clock(), deleted: 0 as const }
+    await deps.mysql.upsertSyncItem({ ...row, user_id: user.id })
+    await deps.mysql.upsertSyncItem({ ...row, user_id: 'other-user' })
+    const result = await fetch(`${url}/api/sync`, { method: 'DELETE', headers: { authorization: `Bearer ${token}` } })
+    assert.equal(result.status, 200)
+    assert.deepEqual((await result.json()).items, [])
+    assert.deepEqual(await deps.mysql.listSyncItems(user.id), [])
+    assert.equal((await deps.mysql.listSyncItems('other-user')).length, 1)
+    assert.equal((await fetch(`${url}/api/sync`, { method: 'DELETE' })).status, 401)
+  } finally { await close() }
+})
+
+test('future outer timestamp is clamped into payload as well', async () => {
+  const { url, close, token } = await start()
+  try {
+    const result = await authed(url, token, 'PUT', { items: [{ kind: 'plan', itemId: 'plan-abc', updatedAt: '2099-01-01T00:00:00.000Z', deleted: false, payload: { ...planPayload, updatedAt: '2099-01-01T00:00:00.000Z' } }] })
+    const item = (await result.json()).items[0]
+    assert.equal(item.updatedAt, '2026-11-03T12:00:00.000Z')
+    assert.equal(item.payload.updatedAt, item.updatedAt)
+  } finally { await close() }
+})
+
+test('concurrent older PUT finishing last cannot replace a newer tombstone', async () => {
+  const { url, close, token, deps } = await start()
+  const original = deps.mysql.upsertSyncItem.bind(deps.mysql)
+  let releaseOld!: () => void
+  const newerWritten = new Promise<void>(resolve => { releaseOld = resolve })
+  deps.mysql.upsertSyncItem = async row => {
+    if (row.updated_at.toISOString() === '2026-11-03T12:00:00.000Z') await newerWritten
+    await original(row)
+    if (row.deleted) releaseOld()
+  }
+  try {
+    const old = authed(url, token, 'PUT', { items: [{ kind: 'plan', itemId: 'plan-abc', updatedAt: '2026-11-03T12:00:00.000Z', deleted: false, payload: planPayload }] })
+    const newer = authed(url, token, 'PUT', { items: [{ kind: 'plan', itemId: 'plan-abc', updatedAt: '2026-11-03T12:00:05.000Z', deleted: true, payload: null }] })
+    const results = await Promise.all([old, newer])
+    assert.deepEqual(results.map(r => r.status), [200, 200])
+    const item = (await (await authed(url, token, 'GET')).json()).items[0]
+    assert.equal(item.deleted, true)
+    assert.equal(item.updatedAt, '2026-11-03T12:00:05.000Z')
+  } finally { await close() }
+})

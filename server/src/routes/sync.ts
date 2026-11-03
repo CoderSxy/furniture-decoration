@@ -3,7 +3,7 @@ import type { AppDeps, SyncItemRow } from '../db/ports.ts'
 import { ApiError } from '../errors.ts'
 import { requireAuth } from '../middleware/auth.ts'
 import { hitRateLimit, syncRateKey } from '../services/rateLimit.ts'
-import { clampUpdatedAt, parseIso, shouldTakeIncoming, toIso } from '../services/merge.ts'
+import { clampUpdatedAt, parseIso, toIso } from '../services/merge.ts'
 import { validateSyncPut } from '../services/validateSync.ts'
 import type { SyncItem } from '../types/sync.ts'
 
@@ -13,7 +13,8 @@ function rowToItem(row: SyncItemRow): SyncItem {
     itemId: row.item_id,
     updatedAt: toIso(row.updated_at),
     deleted: row.deleted === 1,
-    payload: row.payload,
+    payload: row.payload != null && typeof row.payload === 'object'
+      ? { ...row.payload, updatedAt: toIso(row.updated_at) } : row.payload,
   }
 }
 
@@ -25,6 +26,18 @@ export function registerSync(router: Router): void {
     ctx.body = { serverTime: toIso(deps.clock()), items: rows.map(rowToItem) }
   })
 
+  router.delete('/api/sync', requireAuth, async (ctx) => {
+    const deps = ctx.state.deps as AppDeps
+    const userId = ctx.state.userId as string
+    await hitRateLimit(deps.redis, syncRateKey(userId), 60, 60)
+    await deps.mysql.withTransaction(async (tx) => {
+      await tx.lockSyncUser(userId)
+      await tx.clearSyncItems(userId)
+    })
+    // PUT and clear serialize on the user row. Writes after clear are new data.
+    ctx.body = { serverTime: toIso(deps.clock()), items: [], cleared: true }
+  })
+
   router.put('/api/sync', requireAuth, async (ctx) => {
     const deps = ctx.state.deps as AppDeps
     await hitRateLimit(deps.redis, syncRateKey(ctx.state.userId), 60, 60)
@@ -34,16 +47,17 @@ export function registerSync(router: Router): void {
     const userId = ctx.state.userId as string
     const now = deps.clock()
     await deps.mysql.withTransaction(async (tx) => {
+      await tx.lockSyncUser(userId)
       for (const raw of body.items as SyncItem[]) {
         let incomingAt = parseIso(raw.updatedAt)
         if (incomingAt == null) throw new ApiError(400, 'VALIDATION_ERROR', '同步数据不合法')
         incomingAt = clampUpdatedAt(incomingAt, now)
         let payload = raw.deleted ? null : raw.payload
+        if (payload != null && typeof payload === 'object') payload = { ...payload, updatedAt: toIso(incomingAt) }
         if (raw.kind === 'scan' && payload != null && typeof payload === 'object') {
           payload = { ...(payload as object), photoPaths: [] }
         }
         const existing = await tx.getSyncItem(userId, raw.kind, raw.itemId)
-        if (!shouldTakeIncoming(incomingAt, existing?.updated_at ?? null)) continue
         await tx.upsertSyncItem({
           user_id: userId,
           kind: raw.kind,

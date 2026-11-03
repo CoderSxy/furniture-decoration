@@ -41,6 +41,10 @@ export function registerAuth(router: Router): void {
   })
   // 本函数禁止 console.log code / token / openid / AppSecret；需要排障时只记 user.id 与微信 errcode。
 
+  router.get('/api/auth/session', requireAuth, async (ctx) => {
+    ctx.body = { user: { id: ctx.state.userId } }
+  })
+
   router.post('/api/auth/logout', requireAuth, async (ctx) => {
     const deps = ctx.state.deps as AppDeps
     await deps.redis.del(sessionKey(ctx.state.sid as string))
