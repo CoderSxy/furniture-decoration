@@ -1,3 +1,4 @@
 export default definePageConfig({
-  navigationBarTitleText: '房型扫描',
+  navigationBarTitleText: '采集房型',
+  disableScroll: true,
 })
