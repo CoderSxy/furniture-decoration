@@ -1,0 +1,36 @@
+.preview2d {
+  margin-top: 16px;
+}
+
+.preview2d__hint {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 24px;
+  color: var(--color-text-muted);
+}
+
+.preview2d__room {
+  position: relative;
+  margin: 0 auto;
+  background: var(--color-card);
+  border: 4px solid var(--color-primary);
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.preview2d__item {
+  position: absolute;
+  background: var(--color-progress);
+  opacity: 0.85;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.preview2d__item-label {
+  display: block;
+  padding: 4px;
+  font-size: 20px;
+  color: #ffffff;
+  overflow: hidden;
+}

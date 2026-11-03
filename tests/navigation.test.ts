@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { planDetailUrl, productDetailUrl, scanPageUrl } from '../src/utils/navigation.ts'
+import {
+  aiRecommendUrl,
+  planDetailUrl,
+  previewPageUrl,
+  productDetailUrl,
+  scanPageUrl,
+} from '../src/utils/navigation.ts'
 
 test('productDetailUrl only passes productId', () => {
   assert.equal(
@@ -25,5 +31,24 @@ test('scanPageUrl stays in packageScan and only passes planId', () => {
   assert.equal(
     scanPageUrl('plan/weird'),
     '/packageScan/pages/scan/index?planId=plan%2Fweird',
+  )
+})
+
+test('aiRecommendUrl and previewPageUrl stay in packagePreview and only pass planId', () => {
+  assert.equal(
+    aiRecommendUrl('plan-1'),
+    '/packagePreview/pages/ai/recommend?planId=plan-1',
+  )
+  assert.equal(
+    previewPageUrl('plan-1'),
+    '/packagePreview/pages/preview/index?planId=plan-1',
+  )
+  assert.equal(
+    aiRecommendUrl('plan/weird'),
+    '/packagePreview/pages/ai/recommend?planId=plan%2Fweird',
+  )
+  assert.equal(
+    previewPageUrl('plan/weird'),
+    '/packagePreview/pages/preview/index?planId=plan%2Fweird',
   )
 })

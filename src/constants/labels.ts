@@ -115,3 +115,7 @@ export const PRICE_RANGE_FILTER_OPTIONS = [
   '3000to8000',
   'gte8000',
 ] as const satisfies readonly PriceRange[]
+
+export const EMPTY_AI_RECOMMEND_TEXT = '暂无推荐，请先放宽预算或去选品'
+
+export const XR_FRAME_UNSUPPORTED_TEXT = '当前基础库不支持 3D 预览'

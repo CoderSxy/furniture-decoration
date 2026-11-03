@@ -8,7 +8,7 @@ import { useCatalogStore } from '../../stores/catalogStore'
 import { selectPlanById, usePlanStore } from '../../stores/planStore'
 import { selectScanByPlanId, useScanStore } from '../../stores/scanStore'
 import type { Product } from '../../types/domain'
-import { productDetailUrl, scanPageUrl } from '../../utils/navigation'
+import { aiRecommendUrl, previewPageUrl, productDetailUrl, scanPageUrl } from '../../utils/navigation'
 import { advanceBlockedReason, canAdvanceStage, formatPlanArea } from '../../utils/plans'
 import './detail.scss'
 
@@ -85,6 +85,22 @@ export default function PlanDetailPage() {
           <RoomFloorplan widthMm={scan.widthMm} depthMm={scan.depthMm} />
         </View>
       ) : null}
+      <View
+        className='plan-m5-entry'
+        onClick={() => {
+          Taro.navigateTo({ url: aiRecommendUrl(plan.id) })
+        }}
+      >
+        <Text className='plan-m5-entry__text'>AI 选品</Text>
+      </View>
+      <View
+        className='plan-m5-entry plan-m5-entry--ghost'
+        onClick={() => {
+          Taro.navigateTo({ url: previewPageUrl(plan.id) })
+        }}
+      >
+        <Text className='plan-m5-entry__text'>预览</Text>
+      </View>
       <Text className='plan-section'>已选商品</Text>
       {planProducts.length === 0 ? (
         <View

@@ -1,28 +1,67 @@
 .page {
   min-height: 100vh;
-  padding: 32px 24px;
+  padding: 24px 24px 48px;
   background: var(--color-surface);
   box-sizing: border-box;
 }
 
-.page__title {
+.ai-title {
   display: block;
   font-size: 40px;
   font-weight: 600;
   color: var(--color-text);
 }
 
-.page__duty {
+.ai-status,
+.ai-empty,
+.ai-missing {
   display: block;
-  margin-top: 16px;
+  margin-top: 24px;
   font-size: 28px;
   color: var(--color-text-muted);
   line-height: 1.5;
 }
 
-.page__meta {
-  display: block;
+.ai-empty {
+  color: var(--color-text);
+}
+
+.ai-item {
   margin-top: 24px;
+}
+
+.ai-item__reason,
+.ai-item__score {
+  display: block;
+  margin-top: 8px;
   font-size: 24px;
-  color: var(--color-primary);
+  color: var(--color-text-muted);
+}
+
+.ai-item__add,
+.ai-preview {
+  margin-top: 12px;
+  padding: 16px 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.ai-item__add--ghost {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+}
+
+.ai-item__add-text,
+.ai-preview__text {
+  color: #ffffff;
+  font-size: 28px;
+}
+
+.ai-item__add--ghost .ai-item__add-text {
+  color: var(--color-text-muted);
+}
+
+.ai-preview {
+  margin-top: 32px;
 }

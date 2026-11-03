@@ -94,6 +94,7 @@ export type PlanState = {
   hydrate: () => void
   createPlan: (input: CreatePlanInput) => CreatePlanResult
   setActivePlanId: (planId: string) => void
+  addProductToPlan: (planId: string, productId: string) => AddProductResult
   addProductToActivePlan: (productId: string) => AddProductResult
   removeProductFromPlan: (planId: string, productId: string) => void
   advanceStage: (planId: string) => boolean
@@ -131,22 +132,26 @@ export const usePlanStore = create<PlanState>((set, get) => ({
     persist(get().plans, planId)
     set({ activePlanId: planId })
   },
-  addProductToActivePlan: (productId) => {
+  addProductToPlan: (planId, productId) => {
     const { plans, activePlanId } = get()
-    if (activePlanId == null) return 'no-active-plan'
-    const current = plans.find((item) => item.id === activePlanId)
+    const current = plans.find((item) => item.id === planId)
     if (!current) return 'no-active-plan'
     if (current.productIds.includes(productId)) return 'duplicate'
     const productIds = [...current.productIds, productId]
     const coverProductId = current.coverProductId ?? productId
     const next = plans.map((item) =>
-      item.id === activePlanId
+      item.id === planId
         ? { ...item, productIds, coverProductId, updatedAt: new Date().toISOString() }
         : item,
     )
     persist(next, activePlanId)
     set({ plans: next })
     return 'added'
+  },
+  addProductToActivePlan: (productId) => {
+    const { activePlanId } = get()
+    if (activePlanId == null) return 'no-active-plan'
+    return get().addProductToPlan(activePlanId, productId)
   },
   removeProductFromPlan: (planId, productId) => {
     const next = get().plans.map((item) => {

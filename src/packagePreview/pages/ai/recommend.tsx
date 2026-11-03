@@ -1,11 +1,106 @@
-import { View, Text } from '@tarojs/components'
+import { Text, View } from '@tarojs/components'
+import Taro, { useRouter } from '@tarojs/taro'
+import { useEffect, useState } from 'react'
+import { ProductCard } from '../../../components/product-card'
+import { EMPTY_AI_RECOMMEND_TEXT } from '../../../constants/labels'
+import { useBudgetStore } from '../../../stores/budgetStore'
+import { useCatalogStore } from '../../../stores/catalogStore'
+import { selectPlanById, usePlanStore } from '../../../stores/planStore'
+import type { AiRecommendItem } from '../../../types/aiRecommend'
+import { fetchAiRecommendations } from '../../../utils/aiRecommendClient'
+import { buildAiRecommendRequest } from '../../../utils/aiRecommendRequest'
+import { previewPageUrl, productDetailUrl } from '../../../utils/navigation'
 import './recommend.scss'
 
-export default function AiRecommendPlaceholderPage() {
+export default function AiRecommendPage() {
+  const router = useRouter()
+  const planId = router.params.planId ?? ''
+  const plan = usePlanStore((state) => selectPlanById(state, planId))
+  const products = useCatalogStore((state) => state.products)
+  const addProductToPlan = usePlanStore((state) => state.addProductToPlan)
+  const ensureForPlan = useBudgetStore((state) => state.ensureForPlan)
+  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState<AiRecommendItem[]>([])
+
+  useEffect(() => {
+    if (!plan) {
+      setLoading(false)
+      setItems([])
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    fetchAiRecommendations(buildAiRecommendRequest(plan, products)).then((next) => {
+      if (cancelled) return
+      setItems(next)
+      setLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [planId])
+
+  if (!plan) {
+    return (
+      <View className='page'>
+        <Text className='ai-missing'>方案不存在</Text>
+      </View>
+    )
+  }
+
+  const onAdd = (productId: string) => {
+    const result = addProductToPlan(plan.id, productId)
+    if (result === 'added') {
+      const next = selectPlanById(usePlanStore.getState(), plan.id)
+      if (next) ensureForPlan(next, products)
+      Taro.showToast({ title: '已加入方案', icon: 'success' })
+      return
+    }
+    if (result === 'duplicate') {
+      Taro.showToast({ title: '已在方案中', icon: 'none' })
+    }
+  }
+
   return (
     <View className='page'>
-      <Text className='page__title'>AI 选品</Text>
-      <Text className='page__duty'>M5 占位页。当前不调用模型。</Text>
+      <Text className='ai-title'>AI 选品</Text>
+      {loading ? <Text className='ai-status'>正在匹配家具…</Text> : null}
+      {!loading && items.length === 0 ? (
+        <Text className='ai-empty'>{EMPTY_AI_RECOMMEND_TEXT}</Text>
+      ) : null}
+      {!loading
+        ? items.map((item) => {
+            const product = products.find((row) => row.id === item.productId)
+            if (!product) return null
+            const joined = plan.productIds.includes(item.productId)
+            return (
+              <View key={item.productId} className='ai-item'>
+                <ProductCard
+                  product={product}
+                  onTap={(id) => {
+                    Taro.navigateTo({ url: productDetailUrl(id) })
+                  }}
+                />
+                <Text className='ai-item__reason'>{item.reason}</Text>
+                <Text className='ai-item__score'>匹配 {item.score}</Text>
+                <View
+                  className={joined ? 'ai-item__add ai-item__add--ghost' : 'ai-item__add'}
+                  onClick={() => onAdd(item.productId)}
+                >
+                  <Text className='ai-item__add-text'>{joined ? '已加入' : '加入方案'}</Text>
+                </View>
+              </View>
+            )
+          })
+        : null}
+      <View
+        className='ai-preview'
+        onClick={() => {
+          Taro.navigateTo({ url: previewPageUrl(plan.id) })
+        }}
+      >
+        <Text className='ai-preview__text'>去预览</Text>
+      </View>
     </View>
   )
 }

@@ -20,10 +20,17 @@ export default defineConfig<'vite'>(async (merge) => {
     plugins: [
       "@tarojs/plugin-generator"
     ],
+    env: {
+      TARO_APP_AI_RECOMMEND_URL: JSON.stringify(process.env.TARO_APP_AI_RECOMMEND_URL || ''),
+    },
     defineConstants: {
     },
     copy: {
       patterns: [
+        {
+          from: 'src/packagePreview/native/xr-furniture/',
+          to: 'packagePreview/native/xr-furniture/',
+        },
       ],
       options: {
       }

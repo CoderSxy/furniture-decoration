@@ -42,5 +42,14 @@ test('app config wires tabs, subpackages, and camera privacy copy', () => {
       (item) => item.root === 'packageScan' && item.pages.includes('pages/scan/index'),
     ),
   )
+  const preview = appConfig.subPackages.find((item) => item.root === 'packagePreview')
+  assert.deepEqual(preview?.pages, ['pages/ai/recommend', 'pages/preview/index'])
+  assert.ok(
+    appConfig.tabBar.list.every(
+      (item) =>
+        item.pagePath !== 'packagePreview/pages/ai/recommend' &&
+        item.pagePath !== 'packagePreview/pages/preview/index',
+    ),
+  )
   assert.equal(appConfig.permission?.['scope.camera']?.desc, '访问你的摄像头')
 })

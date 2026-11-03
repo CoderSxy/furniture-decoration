@@ -1,0 +1,29 @@
+<xr-scene id="xr-scene" bind:error="onError">
+  <xr-node>
+    <xr-light type="ambient" color="1 1 1" intensity="1" />
+    <xr-light type="directional" rotation="40 50 0" color="1 1 1" intensity="2" />
+    <xr-mesh
+      node-id="floor"
+      geometry="plane"
+      scale="{{floorScale}}"
+      uniforms="u_baseColorFactor:0.97 0.95 0.93 1"
+    />
+    <xr-mesh
+      wx:for="{{cubes}}"
+      wx:key="id"
+      node-id="{{item.id}}"
+      geometry="cube"
+      position="{{item.position}}"
+      scale="{{item.scale}}"
+      uniforms="u_baseColorFactor:0.77 0.36 0.15 1"
+    />
+    <xr-camera
+      id="camera"
+      node-id="camera"
+      position="0 2.4 5"
+      target="0 0 0"
+      clear-color="0.97 0.95 0.93 1"
+      camera-orbit
+    />
+  </xr-node>
+</xr-scene>
