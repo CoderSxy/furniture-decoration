@@ -1,4 +1,12 @@
-import type { PlanStage, PriceRange, ProductCategory, RoomType, StyleTag } from '../types/domain'
+// src/constants/labels.ts
+import type {
+  BudgetCategory,
+  PlanStage,
+  PriceRange,
+  ProductCategory,
+  RoomType,
+  StyleTag,
+} from '../types/domain'
 
 export const ROOM_LABELS: Record<RoomType, string> = {
   living: '客厅',
@@ -42,6 +50,20 @@ export const STAGE_LABELS: Record<PlanStage, string> = {
 }
 
 export const STAGE_ORDER = ['measure', 'design', 'construct', 'accept'] as const satisfies readonly PlanStage[]
+
+export const BUDGET_CATEGORY_LABELS: Record<BudgetCategory, string> = {
+  furniture: '家具',
+  material: '材料',
+  labor: '人工',
+  other: '其他',
+}
+
+export const BUDGET_CATEGORY_ORDER = [
+  'furniture',
+  'material',
+  'labor',
+  'other',
+] as const satisfies readonly BudgetCategory[]
 
 export const CATEGORY_FILTER_OPTIONS = [
   'all',
