@@ -1,9 +1,9 @@
-// src/constants/labels.ts
 import type {
   BudgetCategory,
   PlanStage,
   PriceRange,
   ProductCategory,
+  RoomScan,
   RoomType,
   StyleTag,
 } from '../types/domain'
@@ -64,6 +64,11 @@ export const BUDGET_CATEGORY_ORDER = [
   'labor',
   'other',
 ] as const satisfies readonly BudgetCategory[]
+
+export const SCAN_SOURCE_LABELS: Record<RoomScan['source'], string> = {
+  'visionkit-v2': 'VisionKit 测量',
+  manual: '手动填写',
+}
 
 export const CATEGORY_FILTER_OPTIONS = [
   'all',
