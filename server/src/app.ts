@@ -4,6 +4,7 @@ import { bodyParser } from '@koa/bodyparser'
 import type { AppDeps } from './db/ports.ts'
 import { errorHandler } from './middleware/errorHandler.ts'
 import { httpsGuard } from './middleware/https.ts'
+import { registerAuth } from './routes/auth.ts'
 import { registerHealth } from './routes/health.ts'
 
 export function createApp(deps: AppDeps): Koa {
@@ -22,6 +23,7 @@ export function createApp(deps: AppDeps): Koa {
   )
   const router = new Router()
   registerHealth(router)
+  registerAuth(router)
   app.use(router.routes())
   app.use(router.allowedMethods())
   return app
