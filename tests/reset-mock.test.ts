@@ -2,10 +2,12 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it } from 'node:test'
 import {
+  AI_PREVIEWS_STORAGE_KEY,
   BUDGETS_STORAGE_KEY,
   FAVORITES_STORAGE_KEY,
   PLANS_STORAGE_KEY,
   SCANS_STORAGE_KEY,
+  TOMBSTONES_STORAGE_KEY,
 } from '../src/constants/storageKeys.ts'
 import { PRODUCTS } from '../src/mocks/products.ts'
 import { useBudgetStore } from '../src/stores/budgetStore.ts'
@@ -20,7 +22,7 @@ describe('resetMockData', { concurrency: false }, () => {
   beforeEach(() => {
     configureStorage(createMemoryStorage())
     useFavoriteStore.setState({ items: [] })
-    usePlanStore.setState({ plans: [], activePlanId: null })
+    usePlanStore.setState({ plans: [], activePlanId: null, activePlanUpdatedAt: null })
     useBudgetStore.setState({ budgets: {} })
     useScanStore.setState({ scans: {} })
   })
@@ -45,6 +47,7 @@ describe('resetMockData', { concurrency: false }, () => {
           heightMm: 1,
           photoPaths: [],
           capturedAt: '2026-11-03T00:00:00.000Z',
+          updatedAt: '2026-11-03T00:00:00.000Z',
         },
       },
     })
@@ -61,6 +64,7 @@ describe('resetMockData', { concurrency: false }, () => {
     assert.deepEqual(readJSON(PLANS_STORAGE_KEY, { keep: true }), {
       plans: [],
       activePlanId: null,
+      activePlanUpdatedAt: null,
     })
     assert.deepEqual(readJSON(BUDGETS_STORAGE_KEY, { keep: true }), {})
     assert.deepEqual(readJSON(SCANS_STORAGE_KEY, { keep: true }), {})
@@ -82,12 +86,23 @@ it('partial reset failures are recorded and retry persists the cleared state', (
       memory.setItem(key, value)
     },
   })
-  usePlanStore.setState({ plans: [], activePlanId: 'old' })
+  usePlanStore.setState({ plans: [], activePlanId: 'old', activePlanUpdatedAt: null })
   const result = resetMockData()
   assert.deepEqual(result, { ok: false, failedKeys: [PLANS_STORAGE_KEY] })
-  assert.deepEqual(writes, [FAVORITES_STORAGE_KEY, PLANS_STORAGE_KEY, BUDGETS_STORAGE_KEY, SCANS_STORAGE_KEY])
+  assert.deepEqual(writes, [
+    FAVORITES_STORAGE_KEY,
+    PLANS_STORAGE_KEY,
+    BUDGETS_STORAGE_KEY,
+    SCANS_STORAGE_KEY,
+    AI_PREVIEWS_STORAGE_KEY,
+    TOMBSTONES_STORAGE_KEY,
+  ])
   assert.equal(usePlanStore.getState().activePlanId, null)
   fail = false
   assert.deepEqual(retryFailedStorageWrites(), [{ ok: true }])
-  assert.deepEqual(readJSON(PLANS_STORAGE_KEY, null), { plans: [], activePlanId: null })
+  assert.deepEqual(readJSON(PLANS_STORAGE_KEY, null), {
+    plans: [],
+    activePlanId: null,
+    activePlanUpdatedAt: null,
+  })
 })

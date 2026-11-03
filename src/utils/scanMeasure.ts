@@ -104,6 +104,7 @@ export function buildManualScan(draft: ManualScanDraft, capturedAt: string): Roo
     heightMm: heightMm ?? 0,
     photoPaths: draft.photoPaths.slice(0, MAX_SCAN_PHOTOS),
     capturedAt,
+    updatedAt: capturedAt,
   }
 }
 
@@ -122,6 +123,7 @@ export function buildVisionKitScan(input: {
     heightMm: input.heightMm,
     photoPaths: [],
     capturedAt: input.capturedAt,
+    updatedAt: input.capturedAt,
   }
 }
 

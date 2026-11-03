@@ -130,9 +130,9 @@ test('stageProgressPercent maps the four stages', () => {
 
 test('favorites-not-in-plan counts the set difference and hides when N=0', () => {
   const favorites: FavoriteRecord[] = [
-    { productId: 'p-sofa-modern-01', savedAt: '2026-11-03T00:00:00.000Z' },
-    { productId: 'p-bed-chinese-04', savedAt: '2026-11-03T00:00:00.000Z' },
-    { productId: 'gone-from-mock', savedAt: '2026-11-03T00:00:00.000Z' },
+    { productId: 'p-sofa-modern-01', savedAt: '2026-11-03T00:00:00.000Z', updatedAt: '2026-11-03T00:00:00.000Z' },
+    { productId: 'p-bed-chinese-04', savedAt: '2026-11-03T00:00:00.000Z', updatedAt: '2026-11-03T00:00:00.000Z' },
+    { productId: 'gone-from-mock', savedAt: '2026-11-03T00:00:00.000Z', updatedAt: '2026-11-03T00:00:00.000Z' },
   ]
   assert.equal(countFavoritesNotInPlan(favorites, ['p-sofa-modern-01']), 2)
   assert.equal(

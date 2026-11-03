@@ -58,7 +58,7 @@ export function computeOtherFen(
 export function buildBudget(
   plan: Pick<Plan, 'id' | 'areaM2' | 'productIds'>,
   products: readonly Product[],
-): Budget {
+): Omit<Budget, 'updatedAt'> {
   const totalFen = computeTotalFen(plan.areaM2)
   const furniture = computeFurnitureFen(plan.productIds, products)
   const material = computeMaterialFen(totalFen)

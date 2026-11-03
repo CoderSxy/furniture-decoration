@@ -36,6 +36,7 @@ const validBudget: Budget = {
     labor: 640000,
     other: 1024000,
   },
+  updatedAt: '1970-01-01T00:00:00.000Z',
 }
 
 describe('budgetStore', { concurrency: false }, () => {
@@ -59,6 +60,19 @@ describe('budgetStore', { concurrency: false }, () => {
     })
     assert.deepEqual(Object.keys(parsed), ['plan-living'])
     assert.deepEqual(parsed['plan-living'], validBudget)
+  })
+
+  it('ensureForPlan stamps ISO updatedAt; missing field hydrates to epoch', () => {
+    const created = useBudgetStore.getState().ensureForPlan(samplePlan(), PRODUCTS)
+    assert.match(created.updatedAt, /^\d{4}-\d{2}-\d{2}T/)
+    const parsed = parsePersistedBudgets({
+      'plan-living': {
+        planId: 'plan-living',
+        totalFen: 2560000,
+        spentByCategory: validBudget.spentByCategory,
+      },
+    })
+    assert.equal(parsed['plan-living'].updatedAt, '1970-01-01T00:00:00.000Z')
   })
 
   it('ensureForPlan creates area-based budget and updates furniture after products change', () => {

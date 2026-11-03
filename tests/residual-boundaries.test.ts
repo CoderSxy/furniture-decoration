@@ -16,7 +16,7 @@ test('area input, hydrate and budget reject excessive area without nonfinite mon
 })
 
 test('scan hydrate and upsert share dimension bounds and three-photo limit', () => {
-  const valid = { planId: 'p', source: 'manual' as const, widthMm: 4000, depthMm: 3000, heightMm: 2800, photoPaths: [], capturedAt: 'now' }
+  const valid = { planId: 'p', source: 'manual' as const, widthMm: 4000, depthMm: 3000, heightMm: 2800, photoPaths: [], capturedAt: 'now', updatedAt: 'now' }
   for (const widthMm of [0, -1, Infinity, NaN, 100001]) {
     assert.deepEqual(parsePersistedScans({ p: { ...valid, widthMm } }), {})
     useScanStore.setState({ scans: {} })

@@ -45,6 +45,7 @@ export interface Product {
 export interface FavoriteRecord {
   productId: string
   savedAt: string
+  updatedAt: string
 }
 
 export interface Plan {
@@ -67,12 +68,14 @@ export interface RoomScan {
   heightMm: number
   photoPaths: string[]
   capturedAt: string
+  updatedAt: string
 }
 
 export interface Budget {
   planId: string
   totalFen: number
   spentByCategory: Record<BudgetCategory, number>
+  updatedAt: string
 }
 
 export interface CatalogFilters {

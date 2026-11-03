@@ -25,9 +25,9 @@ export default function LoginPage() {
     }
     void (async () => {
       try {
-        await loginWithWeChat()
+        const session = await loginWithWeChat()
         try {
-          await runLoginSync()
+          await runLoginSync(session.previousUserId)
         } catch {
           // 同步失败仍进入选品，由 pendingRetry 稍后重试
         }

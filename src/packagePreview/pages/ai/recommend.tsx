@@ -9,6 +9,7 @@ import { selectPlanById, usePlanStore } from '../../../stores/planStore'
 import type { AiRecommendItem } from '../../../types/aiRecommend'
 import { fetchAiRecommendations, filterRecommendations } from '../../../utils/aiRecommendClient'
 import { buildAiRecommendRequest } from '../../../utils/aiRecommendRequest'
+import { useAiPreviewStore } from '../../../stores/aiPreviewStore'
 import { useAuthGate } from '../../../hooks/useAuthGate'
 import { previewPageUrl, productDetailUrl } from '../../../utils/navigation'
 import './recommend.scss'
@@ -37,6 +38,7 @@ export default function AiRecommendPage() {
     setError(false)
     fetchAiRecommendations(buildAiRecommendRequest(plan, products), { products }).then((next) => {
       if (cancelled) return
+      useAiPreviewStore.getState().upsert(plan.id, buildAiRecommendRequest(plan, products), next)
       setItems(next)
     }).catch(() => {
       if (cancelled) return

@@ -7,7 +7,8 @@ import {
 import { useSyncStore } from '../stores/syncStore'
 import { apiRequest } from './apiClient'
 
-export async function loginWithWeChat(): Promise<{ token: string; userId: string }> {
+export async function loginWithWeChat(): Promise<{ token: string; userId: string; previousUserId: string | null }> {
+  const previousUserId = useSyncStore.getState().userId
   try {
     await Taro.requirePrivacyAuthorize()
   } catch {
@@ -21,7 +22,7 @@ export async function loginWithWeChat(): Promise<{ token: string; userId: string
       data: { code },
     })
     useSyncStore.getState().setSession({ token: res.token, userId: res.user.id })
-    return { token: res.token, userId: res.user.id }
+    return { token: res.token, userId: res.user.id, previousUserId }
   } catch (error) {
     const codeName = (error as { code?: string }).code
     Taro.showToast({
