@@ -14,3 +14,6 @@ taro.createSelectorQuery = () => {
   return query
 }
 taro.getSystemInfoSync = () => ({ SDKVersion: '3.6.5' })
+export const useReady = (cb) => { taro.testReady = cb }
+export const useDidShow = (cb) => { taro.testShow = cb }
+export const useDidHide = (cb) => { taro.testHide = cb }

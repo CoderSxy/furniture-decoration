@@ -8,7 +8,7 @@ import { readJSON, writeJSON } from '../utils/storage'
 const CATEGORIES: readonly BudgetCategory[] = ['furniture', 'material', 'labor', 'other']
 
 function isNonNegativeFinite(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
 }
 
 function parseBudget(key: string, input: unknown): Budget | null {

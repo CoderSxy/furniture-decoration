@@ -1,3 +1,4 @@
+import { isValidArea } from './domainLimits'
 // src/utils/budget.ts
 import type { Budget, FavoriteRecord, Plan, PlanStage, Product } from '../types/domain'
 
@@ -12,9 +13,13 @@ export const STAGE_PROGRESS_PERCENT: Record<PlanStage, number> = {
   accept: 100,
 }
 
+function safeFen(value: number): number {
+  return Number.isSafeInteger(value) && value >= 0 ? value : 0
+}
+
 export function computeTotalFen(areaM2: number): number {
-  if (!Number.isFinite(areaM2) || areaM2 <= 0) return 0
-  return Math.round(areaM2 * AREA_BUDGET_FEN_PER_M2)
+  if (!isValidArea(areaM2)) return 0
+  return safeFen(Math.round(areaM2 * AREA_BUDGET_FEN_PER_M2))
 }
 
 export function computeFurnitureFen(
@@ -25,17 +30,20 @@ export function computeFurnitureFen(
   let sum = 0
   for (const id of productIds) {
     const product = byId.get(id)
-    if (product) sum += product.priceFen
+    if (product) {
+      const next = sum + safeFen(product.priceFen)
+      if (Number.isSafeInteger(next)) sum = next
+    }
   }
   return sum
 }
 
 export function computeMaterialFen(totalFen: number): number {
-  return Math.round(totalFen * MATERIAL_RATIO)
+  return safeFen(Math.round(safeFen(totalFen) * MATERIAL_RATIO))
 }
 
 export function computeLaborFen(totalFen: number): number {
-  return Math.round(totalFen * LABOR_RATIO)
+  return safeFen(Math.round(safeFen(totalFen) * LABOR_RATIO))
 }
 
 export function computeOtherFen(
@@ -44,7 +52,7 @@ export function computeOtherFen(
   materialFen: number,
   laborFen: number,
 ): number {
-  return Math.max(0, totalFen - furnitureFen - materialFen - laborFen)
+  return safeFen(Math.max(0, safeFen(totalFen) - safeFen(furnitureFen) - safeFen(materialFen) - safeFen(laborFen)))
 }
 
 export function buildBudget(

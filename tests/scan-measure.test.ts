@@ -89,7 +89,7 @@ describe('scanMeasure', () => {
       }),
       'invalid-photos',
     )
-    assert.equal(MANUAL_SCAN_ERRORS['invalid-width'], '长度必须大于 0')
+    assert.equal(MANUAL_SCAN_ERRORS['invalid-width'], '长度须大于 0 且不超过 100000 mm')
     assert.deepEqual(
       appendPhotoPaths(['a'], ['b', 'c', 'd', 'e']),
       ['a', 'b', 'c'],

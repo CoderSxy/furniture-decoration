@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro'
 import { recommendProducts } from '../mocks/aiRecommend'
+import type { Product } from '../types/domain'
 import type { AiRecommendItem, AiRecommendRequest } from '../types/aiRecommend'
 
 export const AI_RECOMMEND_URL_ENV = 'TARO_APP_AI_RECOMMEND_URL'
@@ -11,6 +12,7 @@ export type AiRecommendRequestOptions = {
 }
 
 export type FetchAiRecommendationsDeps = {
+  products?: readonly Pick<Product, 'id'>[]
   getUrl?: () => string | undefined
   request?: (options: AiRecommendRequestOptions) => Promise<{ data: unknown; statusCode?: number }>
   recommend?: (req: AiRecommendRequest) => Promise<AiRecommendItem[]>
@@ -32,15 +34,29 @@ export async function fetchAiRecommendations(
     if (res.statusCode != null && (res.statusCode < 200 || res.statusCode >= 300)) {
       throw new Error(`Recommendation HTTP ${res.statusCode}`)
     }
-    return Array.isArray(res.data) ? res.data.filter(isRecommendItem) : []
+    if (!Array.isArray(res.data)) throw new Error('Invalid recommendation response')
+    return filterRecommendations(res.data, deps.products)
   }
   const recommend = deps.recommend ?? recommendProducts
-  return recommend(req)
+  return filterRecommendations(await recommend(req), deps.products)
 }
 
 function isRecommendItem(value: unknown): value is AiRecommendItem {
   if (value == null || typeof value !== 'object') return false
   const row = value as Record<string, unknown>
   return typeof row.productId === 'string' && row.productId.trim().length > 0 &&
-    typeof row.reason === 'string' && typeof row.score === 'number' && Number.isFinite(row.score)
+    typeof row.reason === 'string' && typeof row.score === 'number' && Number.isFinite(row.score) && row.score >= 0 && row.score <= 1
+}
+
+export function filterRecommendations(
+  values: readonly unknown[],
+  products?: readonly Pick<Product, 'id'>[],
+): AiRecommendItem[] {
+  const known = products ? new Set(products.map((p) => p.id)) : null
+  const seen = new Set<string>()
+  return values.filter((value): value is AiRecommendItem => {
+    if (!isRecommendItem(value) || (known && !known.has(value.productId)) || seen.has(value.productId)) return false
+    seen.add(value.productId)
+    return true
+  })
 }

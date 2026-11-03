@@ -1,3 +1,4 @@
+import { isValidScanDimension } from './domainLimits'
 import type { RoomScan } from '../types/domain'
 
 export const DEFAULT_ROOM_HEIGHT_MM = 2800
@@ -33,7 +34,7 @@ export function distanceMmBetweenTransforms(
   const pb = translationFromHitTransform(b)
   if (!pa || !pb) return null
   const mm = metersToMm(distanceMeters(pa, pb))
-  if (!(mm > 0)) return null
+  if (!isValidScanDimension(mm)) return null
   return mm
 }
 
@@ -54,15 +55,15 @@ export type ManualScanError =
 
 export const MANUAL_SCAN_ERRORS: Record<ManualScanError, string> = {
   'invalid-plan': '缺少方案，无法采集',
-  'invalid-width': '长度必须大于 0',
-  'invalid-depth': '宽度必须大于 0',
-  'invalid-height': '层高必须大于 0',
+  'invalid-width': '长度须大于 0 且不超过 100000 mm',
+  'invalid-depth': '宽度须大于 0 且不超过 100000 mm',
+  'invalid-height': '层高须大于 0 且不超过 100000 mm',
   'invalid-photos': '参考图最多 3 张',
 }
 
 export function parsePositiveMm(text: string): number | null {
   const value = Number(String(text).trim())
-  if (!Number.isFinite(value) || value <= 0) return null
+  if (!isValidScanDimension(value)) return null
   return value
 }
 
@@ -156,10 +157,10 @@ export function canSaveMeasure(state: MeasureState): boolean {
   return (
     state.phase === 'height' &&
     state.widthMm != null &&
-    state.widthMm > 0 &&
+    isValidScanDimension(state.widthMm) &&
     state.depthMm != null &&
-    state.depthMm > 0 &&
-    state.heightMm > 0
+    isValidScanDimension(state.depthMm) &&
+    isValidScanDimension(state.heightMm)
   )
 }
 

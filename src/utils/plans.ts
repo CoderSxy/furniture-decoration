@@ -1,3 +1,4 @@
+import { isValidArea } from './domainLimits'
 import { ROOM_CREATE_OPTIONS, STAGE_ORDER } from '../constants/labels'
 import type { Plan, PlanStage, RoomType } from '../types/domain'
 
@@ -16,7 +17,7 @@ export function validateCreatePlan(input: {
 }): 'ok' | CreatePlanError {
   if (input.title.trim().length === 0) return 'invalid-title'
   if (!(ROOM_CREATE_OPTIONS as readonly string[]).includes(input.roomType)) return 'invalid-room'
-  if (!Number.isFinite(input.areaM2) || input.areaM2 <= 0) return 'invalid-area'
+  if (!isValidArea(input.areaM2)) return 'invalid-area'
   return 'ok'
 }
 

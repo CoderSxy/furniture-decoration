@@ -58,6 +58,13 @@ export default function MinePage() {
         Taro.showToast({ title: results.every((row) => row.ok) ? '保存完成' : '保存失败，请稍后重试', icon: 'none' })
       }}><Text>重试本机保存</Text></View>
       <Text className='mine-note'>数据仅保存在本机。不含账号、支付或云端备份。</Text>
+      <View className='mine-reset' onClick={() => {
+        void Taro.showModal({
+          title: '隐私与本地保存说明',
+          content: '相机用于房型测量，参考照片由你主动选择。收藏、方案、预算、房型尺寸及照片路径仅保存在本机；临时照片可能失效，清理应用数据会丢失记录。默认 AI 使用本地 mock；若配置远程推荐，将向该接口发送房型、面积、风格、预算和已选商品 ID，不发送照片。可通过“重置 mock”清除本地记录。',
+          showCancel: false,
+        })
+      }}><Text>隐私与本地保存说明</Text></View>
       <View className='mine-reset' onClick={() => { void onReset() }}>
         <Text className='mine-reset__text'>重置 mock</Text>
       </View>
