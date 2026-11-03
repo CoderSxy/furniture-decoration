@@ -7,6 +7,8 @@ import {
 } from '../../constants/labels'
 import { isLoggedIn } from '../../utils/authGate'
 import { getApiBaseUrl } from '../../utils/apiClient'
+import { loginWithWeChat } from '../../utils/authSession'
+import { runLoginSync } from '../../utils/syncEngine'
 import './index.scss'
 
 export default function LoginPage() {
@@ -21,6 +23,19 @@ export default function LoginPage() {
       Taro.showToast({ title: LOGIN_MISSING_BASE_TEXT, icon: 'none' })
       return
     }
+    void (async () => {
+      try {
+        await loginWithWeChat()
+        try {
+          await runLoginSync()
+        } catch {
+          // 同步失败仍进入选品，由 pendingRetry 稍后重试
+        }
+        Taro.reLaunch({ url: '/pages/catalog/index' })
+      } catch {
+        // 登录失败留在登录页
+      }
+    })()
   }
 
   return (

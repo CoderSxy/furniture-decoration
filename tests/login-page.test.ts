@@ -27,6 +27,33 @@ test('login page shows WeChat copy and blocks missing API base', async () => {
   }
 })
 
+test('successful WeChat login relaunches catalog', async () => {
+  configureStorage(createMemoryStorage())
+  useSyncStore.setState({ token: null, userId: null, loggedInAt: null, pendingRetry: false })
+  process.env.TARO_APP_API_BASE_URL = 'https://example.com'
+  Taro.lastReLaunch = ''
+  Taro.lastToast = ''
+  Taro.showToast = async ({ title }) => { Taro.lastToast = title }
+  Taro.reLaunch = async ({ url }) => { Taro.lastReLaunch = url }
+  Taro.requirePrivacyAuthorize = async (option) => { option?.success?.() }
+  Taro.login = async () => ({ code: 'fresh-code' })
+  Taro.request = async () => ({
+    statusCode: 200,
+    data: { token: 'sid.sig', expiresIn: 2592000, user: { id: 'user-1' } },
+  })
+  const page = mount(LoginPage)
+  try {
+    nodes(page.tree, (node) => node.props?.onClick && textContent(node).includes('微信登录'))[0].props.onClick()
+    await tick(); page.flush()
+    await tick(); page.flush()
+    assert.equal(Taro.lastReLaunch, '/pages/catalog/index')
+    assert.equal(useSyncStore.getState().token, 'sid.sig')
+  } finally {
+    page.unmount()
+    delete process.env.TARO_APP_API_BASE_URL
+  }
+})
+
 test('login page with existing token relaunches catalog', async () => {
   configureStorage(createMemoryStorage())
   useSyncStore.setState({ token: 't', userId: 'u', loggedInAt: '2026-11-03T12:00:00.000Z', pendingRetry: false })
