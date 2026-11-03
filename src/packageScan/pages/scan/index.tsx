@@ -3,33 +3,58 @@ import Taro, { useRouter } from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import type { ProbeResult } from '../../../utils/scanCapability'
 import { probeScanCapability } from '../../../utils/scanCapability'
-import { getCreateVkSession, readSdkVersion } from '../../../utils/weappScanBridge'
+import { ensureCameraPrivacy } from '../../../utils/scanPrivacy'
+import {
+  createWeappPrivacyBridge,
+  getCreateVkSession,
+  readSdkVersion,
+} from '../../../utils/weappScanBridge'
 import { ManualForm } from './manual-form'
+import { MeasureView } from './measure-view'
 import './index.scss'
 
 export default function ScanPage() {
   const router = useRouter()
   const planId = router.params.planId ?? ''
-  const [probe, setProbe] = useState<ProbeResult | null>(null)
+  const [mode, setMode] = useState<'loading' | 'manual' | 'visionkit'>('loading')
+  const [session, setSession] = useState<ProbeResult['session']>(null)
 
   useEffect(() => {
     if (!planId) return
     let cancelled = false
-    let session: ProbeResult['session'] = null
-    void probeScanCapability({
-      getSdkVersion: readSdkVersion,
-      createVKSession: getCreateVkSession(),
-    }).then((result) => {
-      session = result.session
+    let active: ProbeResult['session'] = null
+    const run = async () => {
+      const result = await probeScanCapability({
+        getSdkVersion: readSdkVersion,
+        createVKSession: getCreateVkSession(),
+      })
+      active = result.session
       if (cancelled) {
-        session?.destroy()
+        active?.destroy()
         return
       }
-      setProbe(result)
-    })
+      if (result.capability !== 'visionkit-v2' || result.session == null) {
+        setMode('manual')
+        return
+      }
+      const allowed = await ensureCameraPrivacy(createWeappPrivacyBridge())
+      if (cancelled) {
+        result.session.destroy()
+        return
+      }
+      if (!allowed) {
+        result.session.destroy()
+        active = null
+        setMode('manual')
+        return
+      }
+      setSession(result.session)
+      setMode('visionkit')
+    }
+    void run()
     return () => {
       cancelled = true
-      session?.destroy()
+      active?.destroy()
     }
   }, [planId])
 
@@ -41,7 +66,7 @@ export default function ScanPage() {
     )
   }
 
-  if (probe == null) {
+  if (mode === 'loading') {
     return (
       <View className='page'>
         <Text className='page__duty'>正在检测测量能力</Text>
@@ -49,11 +74,22 @@ export default function ScanPage() {
     )
   }
 
-  if (probe.capability === 'visionkit-v2') {
+  if (mode === 'visionkit' && session) {
     return (
-      <View className='page'>
-        <Text className='page__title'>VisionKit 测量准备中</Text>
-        <Text className='page__duty'>请使用真机预览。开发者工具可返回并改用手填。</Text>
+      <View className='page page--measure'>
+        <MeasureView
+          planId={planId}
+          session={session}
+          onSaved={() => {
+            session.destroy()
+            Taro.navigateBack()
+          }}
+          onFallback={() => {
+            session.destroy()
+            setSession(null)
+            setMode('manual')
+          }}
+        />
       </View>
     )
   }
