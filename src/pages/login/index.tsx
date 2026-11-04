@@ -5,7 +5,7 @@ import {
   LOGIN_MISSING_BASE_TEXT,
   LOGIN_SUBTITLE,
 } from '../../constants/labels'
-import { isLoggedIn } from '../../utils/authGate'
+import { isLoggedIn, restoreSession } from '../../utils/authGate'
 import { getApiBaseUrl } from '../../utils/apiClient'
 import { loginWithWeChat } from '../../utils/authSession'
 import { runLoginSync } from '../../utils/syncEngine'
@@ -13,9 +13,9 @@ import './index.scss'
 
 export default function LoginPage() {
   useDidShow(() => {
-    if (isLoggedIn()) {
-      Taro.reLaunch({ url: '/pages/catalog/index' })
-    }
+    void restoreSession().then((valid) => {
+      if (valid && isLoggedIn()) Taro.reLaunch({ url: '/pages/catalog/index' })
+    })
   })
 
   const onLogin = () => {
@@ -31,7 +31,7 @@ export default function LoginPage() {
         } catch {
           // 同步失败仍进入选品，由 pendingRetry 稍后重试
         }
-        Taro.reLaunch({ url: '/pages/catalog/index' })
+        if (isLoggedIn()) Taro.reLaunch({ url: '/pages/catalog/index' })
       } catch {
         // 登录失败留在登录页
       }

@@ -39,3 +39,20 @@ test('every business page installs useAuthGate and login page does not', () => {
   assert.equal(login.includes('useAuthGate'), false)
   assert.equal(login.includes('getPhoneNumber'), false)
 })
+
+test('restored identity isolates data if persisted owner differs from valid Bearer', async () => {
+  const { writeJSON } = await import('../src/utils/storage.ts')
+  const { restoreSession } = await import('../src/utils/authGate.ts')
+  const { useFavoriteStore } = await import('../src/stores/favoriteStore.ts')
+  configureStorage(createMemoryStorage())
+  useSyncStore.getState().setSession({ token: 'a', userId: 'A' })
+  writeJSON('fd:dataOwner', 'B')
+  useFavoriteStore.getState().replaceAll([{ productId: 'B-secret', savedAt: '2026-11-03T12:00:00.000Z', updatedAt: '2026-11-03T12:00:00.000Z' }])
+  useSyncStore.getState().hydrate()
+  process.env.TARO_APP_API_BASE_URL = 'https://example.com'
+  Taro.request = async () => ({ statusCode: 200, data: { user: { id: 'A' } } })
+  try {
+    assert.equal(await restoreSession(), true)
+    assert.deepEqual(useFavoriteStore.getState().items, [])
+  } finally { delete process.env.TARO_APP_API_BASE_URL }
+})

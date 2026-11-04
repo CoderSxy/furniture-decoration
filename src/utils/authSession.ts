@@ -34,10 +34,11 @@ export async function loginWithWeChat(): Promise<{ token: string; userId: string
 }
 
 export async function logoutSession(): Promise<void> {
+  const work = apiRequest('/api/auth/logout', { method: 'POST' })
+  useSyncStore.getState().clearSession()
   try {
-    await apiRequest('/api/auth/logout', { method: 'POST' })
+    await work
   } catch {
     // 无论 204 还是网络失败都清本地 token
   }
-  useSyncStore.getState().clearSession()
 }

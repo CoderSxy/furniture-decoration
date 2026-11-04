@@ -26,7 +26,7 @@ describe('syncEngine', { concurrency: false }, () => {
     useBudgetStore.setState({ budgets: {} })
     useScanStore.setState({ scans: {} })
     useAiPreviewStore.setState({ previews: {} })
-    useSyncStore.setState({ token: 'sid.sig', userId: 'user-1', loggedInAt: '2026-11-03T12:00:00.000Z', pendingRetry: false })
+    useSyncStore.setState({ verified: true, token: 'sid.sig', userId: 'user-1', loggedInAt: '2026-11-03T12:00:00.000Z', pendingRetry: false })
     process.env.TARO_APP_API_BASE_URL = 'https://example.com'
   })
 

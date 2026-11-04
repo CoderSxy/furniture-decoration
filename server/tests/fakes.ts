@@ -43,7 +43,13 @@ export function memoryMysql(): MysqlPort {
       return items.get(itemKey(userId, kind, itemId)) ?? null
     },
     async upsertSyncItem(row) {
-      items.set(itemKey(row.user_id, row.kind, row.item_id), row)
+      const key = itemKey(row.user_id, row.kind, row.item_id)
+      const existing = items.get(key)
+      if (!existing || row.updated_at > existing.updated_at) items.set(key, row)
+    },
+    async lockSyncUser() {},
+    async clearSyncItems(userId) {
+      for (const [key, row] of items) if (row.user_id === userId) items.delete(key)
     },
     async withTransaction(fn) {
       return fn(api)

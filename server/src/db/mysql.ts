@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise'
+import { writeSyncItem } from './syncItemWrite.ts'
 import type { Env } from '../env.ts'
 import type { MysqlPort, SyncItemRow, UserRow } from './ports.ts'
 import type { SyncKind } from '../types/sync.ts'
@@ -56,20 +57,13 @@ export function createMysql(env: Env): MysqlPort {
       return rows[0] ? mapRow(rows[0]) : null
     },
     async upsertSyncItem(row) {
-      await conn.execute(
-        `INSERT INTO sync_items (user_id, kind, item_id, payload, updated_at, deleted, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE payload = VALUES(payload), updated_at = VALUES(updated_at), deleted = VALUES(deleted)`,
-        [
-          row.user_id,
-          row.kind,
-          row.item_id,
-          row.payload == null ? null : JSON.stringify(row.payload),
-          row.updated_at,
-          row.deleted,
-          row.created_at,
-        ],
-      )
+      await writeSyncItem(async (sql, values) => { await conn.execute(sql, values as never) }, row)
+    },
+    async lockSyncUser(userId) {
+      await conn.execute('SELECT id FROM users WHERE id = ? FOR UPDATE', [userId])
+    },
+    async clearSyncItems(userId) {
+      await conn.execute('DELETE FROM sync_items WHERE user_id = ?', [userId])
     },
     async withTransaction(fn) {
       if ('getConnection' in conn) {

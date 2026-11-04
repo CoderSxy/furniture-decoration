@@ -30,8 +30,8 @@ test('mine page shows logout, clear-my-data, and openid privacy copy', async () 
 test('logout keeps favorites and relaunches login', async () => {
   configureStorage(createMemoryStorage())
   const { useFavoriteStore } = await import('../src/stores/favoriteStore.ts')
-  useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
   useSyncStore.getState().setSession({ token: 't', userId: 'u' })
+  useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
   Taro.request = async () => ({ statusCode: 204, data: '' })
   Taro.lastReLaunch = ''
   Taro.reLaunch = async ({ url }) => { Taro.lastReLaunch = url }
