@@ -8,6 +8,7 @@ import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { usePlanStore } from '../../stores/planStore'
 import type { RoomType } from '../../types/domain'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { planDetailUrl } from '../../utils/navigation'
 import { resolveCoverProductId } from '../../utils/plans'
 import './index.scss'
@@ -19,6 +20,7 @@ const CREATE_ERRORS: Record<'invalid-title' | 'invalid-room' | 'invalid-area', s
 }
 
 export default function PlansPage() {
+  useAuthGate()
   const plans = usePlanStore((state) => state.plans)
   const activePlanId = usePlanStore((state) => state.activePlanId)
   const createPlan = usePlanStore((state) => state.createPlan)

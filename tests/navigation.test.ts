@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   aiRecommendUrl,
+  loginPageUrl,
   planDetailUrl,
   previewPageUrl,
   productDetailUrl,
@@ -32,6 +33,10 @@ test('scanPageUrl stays in packageScan and only passes planId', () => {
     scanPageUrl('plan/weird'),
     '/packageScan/pages/scan/index?planId=plan%2Fweird',
   )
+})
+
+test('loginPageUrl is a non-tab path', () => {
+  assert.equal(loginPageUrl(), '/pages/login/index')
 })
 
 test('aiRecommendUrl and previewPageUrl stay in packagePreview and only pass planId', () => {

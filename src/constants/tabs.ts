@@ -17,7 +17,7 @@ export const TAB_ITEMS = [
   {
     pagePath: 'pages/mine/index',
     text: '我的',
-    duty: '收藏、本地数据说明与开发重置。',
+    duty: '收藏、登录态、云端同步与清除我的数据。',
   },
 ] as const
 

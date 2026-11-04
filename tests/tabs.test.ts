@@ -28,6 +28,7 @@ test('app config wires tabs, subpackages, and camera privacy copy', () => {
     ['packageScan', 'packagePreview'],
   )
   assert.deepEqual(appConfig.pages, [
+    'pages/login/index',
     'pages/catalog/index',
     'pages/plans/index',
     'pages/budget/index',
@@ -35,6 +36,7 @@ test('app config wires tabs, subpackages, and camera privacy copy', () => {
     'pages/catalog/detail',
     'pages/plans/detail',
   ])
+  assert.ok(appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/login/index'))
   assert.equal(appConfig.tabBar.list.length, 4)
   assert.ok(appConfig.tabBar.list.every((item) => item.pagePath !== 'pages/plans/detail'))
   assert.ok(

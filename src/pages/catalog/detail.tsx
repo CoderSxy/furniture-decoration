@@ -6,10 +6,12 @@ import { useBudgetStore } from '../../stores/budgetStore'
 import { useCatalogStore } from '../../stores/catalogStore'
 import { useFavoriteStore } from '../../stores/favoriteStore'
 import { selectActivePlan, usePlanStore } from '../../stores/planStore'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { formatPriceYuan } from '../../utils/price'
 import './detail.scss'
 
 export default function CatalogDetailPage() {
+  useAuthGate()
   const router = useRouter()
   const productId = router.params.productId ?? ''
   const product = useCatalogStore((state) =>

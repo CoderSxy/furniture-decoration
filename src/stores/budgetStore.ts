@@ -4,6 +4,7 @@ import { BUDGETS_STORAGE_KEY } from '../constants/storageKeys'
 import type { Budget, BudgetCategory, Plan, Product } from '../types/domain'
 import { buildBudget } from '../utils/budget'
 import { readJSON, writeJSON } from '../utils/storage'
+import { schedulePush } from '../utils/syncNotify'
 
 const CATEGORIES: readonly BudgetCategory[] = ['furniture', 'material', 'labor', 'other']
 
@@ -29,6 +30,10 @@ function parseBudget(key: string, input: unknown): Budget | null {
     planId: row.planId,
     totalFen: row.totalFen,
     spentByCategory,
+    updatedAt:
+      typeof row.updatedAt === 'string' && row.updatedAt.length > 0
+        ? row.updatedAt
+        : '1970-01-01T00:00:00.000Z',
   }
 }
 
@@ -57,6 +62,8 @@ export type BudgetState = {
     plans: Array<Pick<Plan, 'id' | 'areaM2' | 'productIds'>>,
     products: readonly Product[],
   ) => void
+  removePlan: (planId: string) => void
+  replaceAll: (budgets: Record<string, Budget>) => void
   reset: () => void
 }
 
@@ -66,17 +73,31 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
     set({ budgets: parsePersistedBudgets(readJSON<unknown>(BUDGETS_STORAGE_KEY, null)) })
   },
   ensureForPlan: (plan, products) => {
-    const budget = buildBudget(plan, products)
+    const now = new Date().toISOString()
+    const budget = { ...buildBudget(plan, products), updatedAt: now }
     const budgets = { ...get().budgets, [plan.id]: budget }
     persist(budgets)
     set({ budgets })
+    schedulePush()
     return budget
   },
   ensureForPlans: (plans, products) => {
+    const now = new Date().toISOString()
     const budgets: Record<string, Budget> = {}
     for (const plan of plans) {
-      budgets[plan.id] = buildBudget(plan, products)
+      budgets[plan.id] = { ...buildBudget(plan, products), updatedAt: now }
     }
+    persist(budgets)
+    set({ budgets })
+    schedulePush()
+  },
+  removePlan: (planId) => {
+    const budgets = { ...get().budgets }
+    delete budgets[planId]
+    persist(budgets)
+    set({ budgets })
+  },
+  replaceAll: (budgets) => {
     persist(budgets)
     set({ budgets })
   },

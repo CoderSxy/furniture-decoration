@@ -22,6 +22,7 @@ export default defineConfig<'vite'>(async (merge) => {
     ],
     env: {
       TARO_APP_AI_RECOMMEND_URL: JSON.stringify(process.env.TARO_APP_AI_RECOMMEND_URL || ''),
+      TARO_APP_API_BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE_URL || ''),
     },
     defineConstants: {
     },

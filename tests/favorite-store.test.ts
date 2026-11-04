@@ -6,6 +6,7 @@ import {
   useFavoriteStore,
 } from '../src/stores/favoriteStore.ts'
 import { configureStorage, createMemoryStorage, readJSON } from '../src/utils/storage.ts'
+import { listTombstones } from '../src/utils/tombstones.ts'
 
 describe('favoriteStore', { concurrency: false }, () => {
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe('favoriteStore', { concurrency: false }, () => {
         { productId: '', savedAt: '2026-11-03T00:00:00.000Z' },
         { productId: 'ok2' },
       ]),
-      [{ productId: 'ok', savedAt: '2026-11-03T00:00:00.000Z' }],
+      [{ productId: 'ok', savedAt: '2026-11-03T00:00:00.000Z', updatedAt: '2026-11-03T00:00:00.000Z' }],
     )
   })
 
@@ -51,8 +52,17 @@ describe('favoriteStore', { concurrency: false }, () => {
     useFavoriteStore.setState({ items: [] })
     useFavoriteStore.getState().hydrate()
     assert.deepEqual(useFavoriteStore.getState().items, [
-      { productId: 'p-bed-modern-03', savedAt: '2026-11-03T08:00:00.000Z' },
+      { productId: 'p-bed-modern-03', savedAt: '2026-11-03T08:00:00.000Z', updatedAt: '2026-11-03T08:00:00.000Z' },
     ])
+  })
+
+  it('toggleFavorite stamps updatedAt and unfavorite writes a tombstone', () => {
+    useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
+    const added = useFavoriteStore.getState().items[0]
+    assert.match(added.updatedAt, /^\d{4}-\d{2}-\d{2}T/)
+    useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
+    assert.deepEqual(useFavoriteStore.getState().items, [])
+    assert.equal(listTombstones()[0].itemId, 'p-sofa-modern-01')
   })
 
   it('reset clears favorites memory and fd:favorites', () => {

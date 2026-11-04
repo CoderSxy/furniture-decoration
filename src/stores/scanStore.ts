@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { SCANS_STORAGE_KEY } from '../constants/storageKeys'
 import type { RoomScan } from '../types/domain'
 import { readJSON, writeJSON } from '../utils/storage'
+import { schedulePush } from '../utils/syncNotify'
 
 function parsePhotoPaths(input: unknown): string[] {
   if (!Array.isArray(input)) return []
@@ -29,6 +30,10 @@ function parseScan(key: string, input: unknown): RoomScan | null {
     heightMm: row.heightMm,
     photoPaths: parsePhotoPaths(row.photoPaths),
     capturedAt: row.capturedAt,
+    updatedAt:
+      typeof row.updatedAt === 'string' && row.updatedAt.length > 0
+        ? row.updatedAt
+        : row.capturedAt,
   }
 }
 
@@ -51,6 +56,8 @@ export type ScanState = {
   hydrate: () => void
   reset: () => void
   upsert: (scan: RoomScan) => void
+  removePlan: (planId: string) => void
+  replaceAll: (scans: Record<string, RoomScan>) => void
 }
 
 export const useScanStore = create<ScanState>((set, get) => ({
@@ -63,9 +70,21 @@ export const useScanStore = create<ScanState>((set, get) => ({
     set({ scans: {} })
   },
   upsert: (scan) => {
-    const valid = parseScan(scan.planId, scan)
+    const stamped = { ...scan, updatedAt: new Date().toISOString() }
+    const valid = parseScan(stamped.planId, stamped)
     if (!valid) return
     const scans = { ...get().scans, [valid.planId]: valid }
+    persist(scans)
+    set({ scans })
+    schedulePush()
+  },
+  removePlan: (planId) => {
+    const scans = { ...get().scans }
+    delete scans[planId]
+    persist(scans)
+    set({ scans })
+  },
+  replaceAll: (scans) => {
     persist(scans)
     set({ scans })
   },

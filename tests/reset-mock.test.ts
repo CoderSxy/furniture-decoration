@@ -2,30 +2,35 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it } from 'node:test'
 import {
+  AI_PREVIEWS_STORAGE_KEY,
   BUDGETS_STORAGE_KEY,
   FAVORITES_STORAGE_KEY,
   PLANS_STORAGE_KEY,
   SCANS_STORAGE_KEY,
+  TOMBSTONES_STORAGE_KEY,
 } from '../src/constants/storageKeys.ts'
 import { PRODUCTS } from '../src/mocks/products.ts'
+import { useAiPreviewStore } from '../src/stores/aiPreviewStore.ts'
 import { useBudgetStore } from '../src/stores/budgetStore.ts'
 import { useCatalogStore } from '../src/stores/catalogStore.ts'
 import { useFavoriteStore } from '../src/stores/favoriteStore.ts'
 import { usePlanStore } from '../src/stores/planStore.ts'
 import { useScanStore } from '../src/stores/scanStore.ts'
-import { resetMockData } from '../src/utils/resetMock.ts'
+import { clearMyDataLocal, resetMockData } from '../src/utils/resetMock.ts'
 import { configureStorage, createMemoryStorage, readJSON, retryFailedStorageWrites } from '../src/utils/storage.ts'
+import { listTombstones, recordTombstone } from '../src/utils/tombstones.ts'
 
-describe('resetMockData', { concurrency: false }, () => {
+describe('clearMyDataLocal', { concurrency: false }, () => {
   beforeEach(() => {
     configureStorage(createMemoryStorage())
     useFavoriteStore.setState({ items: [] })
-    usePlanStore.setState({ plans: [], activePlanId: null })
+    usePlanStore.setState({ plans: [], activePlanId: null, activePlanUpdatedAt: null })
     useBudgetStore.setState({ budgets: {} })
     useScanStore.setState({ scans: {} })
+    useAiPreviewStore.setState({ previews: {} })
   })
 
-  it('clears favorites plans budgets scans and leaves catalog products', () => {
+  it('clears favorites plans budgets scans aiPreviews tombstones and leaves catalog products', () => {
     useFavoriteStore.getState().toggleFavorite('p-sofa-modern-01')
     const created = usePlanStore.getState().createPlan({
       title: '客厅',
@@ -45,27 +50,44 @@ describe('resetMockData', { concurrency: false }, () => {
           heightMm: 1,
           photoPaths: [],
           capturedAt: '2026-11-03T00:00:00.000Z',
+          updatedAt: '2026-11-03T00:00:00.000Z',
         },
       },
     })
+    useAiPreviewStore.getState().upsert(created.plan.id, {
+      planId: created.plan.id,
+      roomType: 'living',
+      areaM2: 32,
+      style: 'modern',
+      budgetFen: 2560000,
+      existingProductIds: [],
+    }, [])
+    recordTombstone('favorite', 'old-fav', '2026-11-03T00:00:00.000Z')
 
     const productCount = useCatalogStore.getState().products.length
-    resetMockData()
+    const result = clearMyDataLocal()
+    assert.equal(result.ok, true)
 
     assert.deepEqual(useFavoriteStore.getState().items, [])
     assert.deepEqual(usePlanStore.getState().plans, [])
     assert.equal(usePlanStore.getState().activePlanId, null)
     assert.deepEqual(useBudgetStore.getState().budgets, {})
     assert.deepEqual(useScanStore.getState().scans, {})
+    assert.deepEqual(useAiPreviewStore.getState().previews, {})
+    assert.deepEqual(listTombstones(), [])
     assert.deepEqual(readJSON(FAVORITES_STORAGE_KEY, ['x']), [])
     assert.deepEqual(readJSON(PLANS_STORAGE_KEY, { keep: true }), {
       plans: [],
       activePlanId: null,
+      activePlanUpdatedAt: null,
     })
     assert.deepEqual(readJSON(BUDGETS_STORAGE_KEY, { keep: true }), {})
     assert.deepEqual(readJSON(SCANS_STORAGE_KEY, { keep: true }), {})
+    assert.deepEqual(readJSON(AI_PREVIEWS_STORAGE_KEY, { keep: true }), {})
+    assert.deepEqual(readJSON(TOMBSTONES_STORAGE_KEY, { keep: true }), [])
     assert.equal(useCatalogStore.getState().products.length, productCount)
     assert.equal(useCatalogStore.getState().products, PRODUCTS)
+    assert.equal(resetMockData().ok, true)
   })
 })
 
@@ -82,12 +104,23 @@ it('partial reset failures are recorded and retry persists the cleared state', (
       memory.setItem(key, value)
     },
   })
-  usePlanStore.setState({ plans: [], activePlanId: 'old' })
-  const result = resetMockData()
+  usePlanStore.setState({ plans: [], activePlanId: 'old', activePlanUpdatedAt: null })
+  const result = clearMyDataLocal()
   assert.deepEqual(result, { ok: false, failedKeys: [PLANS_STORAGE_KEY] })
-  assert.deepEqual(writes, [FAVORITES_STORAGE_KEY, PLANS_STORAGE_KEY, BUDGETS_STORAGE_KEY, SCANS_STORAGE_KEY])
+  assert.deepEqual(writes, [
+    FAVORITES_STORAGE_KEY,
+    PLANS_STORAGE_KEY,
+    BUDGETS_STORAGE_KEY,
+    SCANS_STORAGE_KEY,
+    AI_PREVIEWS_STORAGE_KEY,
+    TOMBSTONES_STORAGE_KEY,
+  ])
   assert.equal(usePlanStore.getState().activePlanId, null)
   fail = false
   assert.deepEqual(retryFailedStorageWrites(), [{ ok: true }])
-  assert.deepEqual(readJSON(PLANS_STORAGE_KEY, null), { plans: [], activePlanId: null })
+  assert.deepEqual(readJSON(PLANS_STORAGE_KEY, null), {
+    plans: [],
+    activePlanId: null,
+    activePlanUpdatedAt: null,
+  })
 })

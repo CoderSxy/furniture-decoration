@@ -6,10 +6,12 @@ import { ProductCard } from '../../components/product-card'
 import { selectFilteredProducts, useCatalogStore } from '../../stores/catalogStore'
 import { useUiStore } from '../../stores/uiStore'
 import { summarizeFilters } from '../../utils/filterProducts'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { productDetailUrl } from '../../utils/navigation'
 import './index.scss'
 
 export default function CatalogPage() {
+  useAuthGate()
   const filters = useCatalogStore((state) => state.filters)
   const setFilters = useCatalogStore((state) => state.setFilters)
   const clearFilters = useCatalogStore((state) => state.clearFilters)

@@ -1,3 +1,7 @@
+export function loginPageUrl(): string {
+  return '/pages/login/index'
+}
+
 export function productDetailUrl(productId: string): string {
   return `/pages/catalog/detail?productId=${encodeURIComponent(productId)}`
 }

@@ -119,3 +119,18 @@ export const PRICE_RANGE_FILTER_OPTIONS = [
 export const EMPTY_AI_RECOMMEND_TEXT = '暂无推荐，请先放宽预算或去选品'
 
 export const XR_FRAME_UNSUPPORTED_TEXT = '当前基础库不支持 3D 预览'
+
+export const LOGIN_BUTTON_TEXT = '微信登录'
+export const LOGIN_SUBTITLE = '使用微信身份同步收藏、方案、预算等到云端。不获取手机号。'
+export const LOGIN_PRIVACY_DENIED_TEXT = '需要同意隐私指引才能同步'
+export const LOGIN_FAILED_TEXT = '登录失败，请重试'
+export const LOGIN_CODE_EXPIRED_TEXT = '登录已过期，请再点一次'
+export const SYNC_FAILED_TEXT = '同步失败，将在网络恢复后重试'
+export const LOGIN_MISSING_BASE_TEXT = '未配置服务地址，无法登录'
+
+export const MINE_NOTE_TEXT = '登录后，收藏、方案、预算、房型尺寸和 AI 选品快照会同步到自建 HTTPS 服务器。使用微信 openid 识别同一用户，不获取手机号。扫描参考照片仍只留在本机，不会上传。可退出登录或清除我的数据。'
+export const MINE_PRIVACY_MODAL_TEXT = '相机用于房型测量，参考照片由你主动选择且不上云。登录后业务数据同步到自建服务器；用户标识为微信 openid，不收集手机号。可通过「退出登录」清除本机会话，或「清除我的数据」删除云端与本机业务记录。'
+export const LOGOUT_BUTTON_TEXT = '退出登录'
+export const CLEAR_MY_DATA_TEXT = '清除我的数据'
+export const CLEAR_MY_DATA_CONFIRM_CONTENT = '将删除云端与本机的收藏、方案、预算、扫描和 AI 快照，商品列表不受影响。'
+export const LOGIN_REQUIRED_TEXT = '请先登录'

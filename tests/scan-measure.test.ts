@@ -110,6 +110,7 @@ describe('scanMeasure', () => {
       heightMm: 2800,
       photoPaths: ['tmp://one.jpg'],
       capturedAt: '2026-11-03T08:00:00.000Z',
+      updatedAt: '2026-11-03T08:00:00.000Z',
     })
     assert.deepEqual(
       buildVisionKitScan({
@@ -127,6 +128,7 @@ describe('scanMeasure', () => {
         heightMm: 2800,
         photoPaths: [],
         capturedAt: '2026-11-03T08:00:00.000Z',
+        updatedAt: '2026-11-03T08:00:00.000Z',
       },
     )
   })

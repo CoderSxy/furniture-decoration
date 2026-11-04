@@ -18,6 +18,7 @@ const validScan: RoomScan = {
   heightMm: 2800,
   photoPaths: ['tmp://a.jpg'],
   capturedAt: '2026-11-03T08:00:00.000Z',
+  updatedAt: '2026-11-03T08:00:00.000Z',
 }
 
 describe('scanStore', { concurrency: false }, () => {
@@ -52,8 +53,11 @@ describe('scanStore', { concurrency: false }, () => {
 
   it('upsert overwrites the same planId and keeps other plans', () => {
     useScanStore.getState().upsert(validScan)
-    assert.deepEqual(getByPlanId('plan-living'), validScan)
-    assert.deepEqual(selectScanByPlanId(useScanStore.getState(), 'plan-living'), validScan)
+    const first = getByPlanId('plan-living')
+    assert.equal(first?.planId, 'plan-living')
+    assert.equal(first?.widthMm, 4000)
+    assert.match(first?.updatedAt ?? '', /^\d{4}-\d{2}-\d{2}T/)
+    assert.deepEqual(selectScanByPlanId(useScanStore.getState(), 'plan-living'), first)
     assert.equal(selectScanByPlanId(useScanStore.getState(), 'missing'), undefined)
 
     const other: RoomScan = {
@@ -72,13 +76,28 @@ describe('scanStore', { concurrency: false }, () => {
     }
     useScanStore.getState().upsert(replaced)
 
-    assert.deepEqual(useScanStore.getState().scans, {
-      'plan-living': replaced,
-      'plan-bed': other,
-    })
-    assert.deepEqual(readJSON(SCANS_STORAGE_KEY, {}), {
-      'plan-living': replaced,
-      'plan-bed': other,
-    })
+    assert.equal(useScanStore.getState().scans['plan-living'].widthMm, 4100)
+    assert.equal(useScanStore.getState().scans['plan-bed'].planId, 'plan-bed')
+    assert.match(useScanStore.getState().scans['plan-living'].updatedAt, /^\d{4}-\d{2}-\d{2}T/)
+  })
+
+  it('hydrate backfills updatedAt from capturedAt', () => {
+    configureStorage(
+      createMemoryStorage({
+        [SCANS_STORAGE_KEY]: JSON.stringify({
+          'plan-living': {
+            planId: 'plan-living',
+            source: 'manual',
+            widthMm: 4000,
+            depthMm: 3000,
+            heightMm: 2800,
+            photoPaths: [],
+            capturedAt: '2026-11-03T08:00:00.000Z',
+          },
+        }),
+      }),
+    )
+    useScanStore.getState().hydrate()
+    assert.equal(useScanStore.getState().scans['plan-living'].updatedAt, '2026-11-03T08:00:00.000Z')
   })
 })

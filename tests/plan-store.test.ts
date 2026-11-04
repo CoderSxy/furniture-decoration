@@ -28,12 +28,12 @@ function samplePlan(patch: Partial<Plan> = {}): Plan {
 describe('planStore', { concurrency: false }, () => {
   beforeEach(() => {
     configureStorage(createMemoryStorage())
-    usePlanStore.setState({ plans: [], activePlanId: null })
+    usePlanStore.setState({ plans: [], activePlanId: null, activePlanUpdatedAt: null })
   })
 
   it('parsePersistedPlans drops malformed rows and dangling activePlanId', () => {
-    assert.deepEqual(parsePersistedPlans(null), { plans: [], activePlanId: null })
-    assert.deepEqual(parsePersistedPlans([]), { plans: [], activePlanId: null })
+    assert.deepEqual(parsePersistedPlans(null), { plans: [], activePlanId: null, activePlanUpdatedAt: null })
+    assert.deepEqual(parsePersistedPlans([]), { plans: [], activePlanId: null, activePlanUpdatedAt: null })
     const parsed = parsePersistedPlans({
       activePlanId: 'missing',
       plans: [
@@ -88,6 +88,7 @@ describe('planStore', { concurrency: false }, () => {
     assert.deepEqual(readJSON(PLANS_STORAGE_KEY, { plans: [], activePlanId: null }), {
       plans: usePlanStore.getState().plans,
       activePlanId: created.plan.id,
+      activePlanUpdatedAt: usePlanStore.getState().activePlanUpdatedAt,
     })
   })
 
@@ -191,7 +192,7 @@ describe('planStore', { concurrency: false }, () => {
       }),
     })
     configureStorage(memory)
-    usePlanStore.setState({ plans: [], activePlanId: null })
+    usePlanStore.setState({ plans: [], activePlanId: null, activePlanUpdatedAt: null })
     usePlanStore.getState().hydrate()
     assert.equal(usePlanStore.getState().activePlanId, 'plan-restore')
     assert.deepEqual(usePlanStore.getState().plans, [persisted])
@@ -210,6 +211,20 @@ describe('planStore', { concurrency: false }, () => {
     assert.deepEqual(readJSON(PLANS_STORAGE_KEY, { keep: true }), {
       plans: [],
       activePlanId: null,
+      activePlanUpdatedAt: null,
     })
+  })
+
+  it('deletePlan removes the plan and setActivePlanId refreshes activePlanUpdatedAt', () => {
+    const created = usePlanStore.getState().createPlan({ title: '客厅', roomType: 'living', areaM2: 20 })
+    assert.equal(created.ok, true)
+    if (!created.ok) throw new Error('plan')
+    const stamped = usePlanStore.getState().activePlanUpdatedAt
+    assert.match(stamped ?? '', /^\d{4}-\d{2}-\d{2}T/)
+    usePlanStore.getState().setActivePlanId(created.plan.id)
+    assert.ok((usePlanStore.getState().activePlanUpdatedAt ?? '') >= (stamped ?? ''))
+    usePlanStore.getState().deletePlan(created.plan.id)
+    assert.deepEqual(usePlanStore.getState().plans, [])
+    assert.equal(usePlanStore.getState().activePlanId, null)
   })
 })

@@ -19,11 +19,13 @@ import {
   occupancyPercent,
   stageProgressPercent,
 } from '../../utils/budget'
+import { useAuthGate } from '../../hooks/useAuthGate'
 import { formatPlanArea } from '../../utils/plans'
 import { formatPriceYuan } from '../../utils/price'
 import './index.scss'
 
 export default function BudgetPage() {
+  useAuthGate()
   const plan = usePlanStore(selectActivePlan)
   const products = useCatalogStore((state) => state.products)
   const favorites = useFavoriteStore((state) => state.items)
